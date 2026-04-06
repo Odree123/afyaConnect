@@ -21,7 +21,7 @@ router.get("/patient/:patient_id", verifyToken, async (req, res) => {
             ...p,
             patient_name: req.user.name
         }));
-        
+    
         res.json(withPatientName);
     } catch (err) {
         console.error("Error:", err.message);
