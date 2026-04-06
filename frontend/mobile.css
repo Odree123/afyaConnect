@@ -1,0 +1,388 @@
+
+
+/* ===========================
+   AFYACONNECT MOBILE STYLES
+   Add this to all CSS files
+   or create as mobile.css and
+   link in all HTML files
+=========================== */
+
+/* ===========================
+   HAMBURGER MENU BUTTON
+=========================== */
+.hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    z-index: 200;
+}
+
+.hamburger:hover { background: var(--green-light, #ecfdf5); }
+
+.hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #0f1923;
+    margin: 5px 0;
+    border-radius: 2px;
+    transition: all 0.3s;
+}
+
+/* Hamburger animation when open */
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Sidebar overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+    backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.active { display: block; }
+
+/* ===========================
+   MOBILE NAV BAR (top bar)
+=========================== */
+.mobile-topbar {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 150;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.mobile-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #059669;
+}
+
+/* ===========================
+   TABLET (max-width: 1024px)
+=========================== */
+@media (max-width: 1024px) {
+    /* Admin stats grid */
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    /* Dashboard doctor grid */
+    .doctor-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+    }
+}
+
+/* ===========================
+   MOBILE (max-width: 768px)
+=========================== */
+@media (max-width: 768px) {
+
+    /* Show hamburger and mobile topbar */
+    .hamburger { display: block; }
+    .mobile-topbar { display: flex; }
+
+    /* Push content down for fixed topbar */
+    .main-content,
+    .dashboard-wrapper .main-content,
+    .admin-wrapper .main-content {
+        margin-left: 0 !important;
+        padding: 72px 16px 20px !important;
+    }
+
+    /* SIDEBAR — slide in from left */
+    .sidebar,
+    .consult-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 100;
+        width: 260px !important;
+    }
+
+    .sidebar.open,
+    .consult-sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* TOP BAR */
+    .top-bar {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .top-bar h1,
+    .top-bar h2 {
+        font-size: 1.3rem !important;
+    }
+
+    .search-box {
+        width: 100% !important;
+    }
+
+    .user-profile .user-text {
+        display: none !important;
+    }
+
+    /* STATS GRID */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .stat-value {
+        font-size: 1.4rem !important;
+    }
+
+    /* DOCTOR GRID */
+    .doctor-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 14px !important;
+    }
+
+    /* DOCTOR CARDS */
+    .doctor-card {
+        padding: 16px 12px !important;
+    }
+
+    .doctor-avatar {
+        width: 56px !important;
+        height: 56px !important;
+        font-size: 1rem !important;
+    }
+
+    /* SECTION HEADER */
+    .section-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+
+    .live-indicator {
+        font-size: 0.75rem !important;
+    }
+
+    /* TABLES — scroll horizontally */
+    .table-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 600px !important;
+    }
+
+    /* CARDS */
+    .card-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+
+    .filter-row select,
+    .search-box {
+        width: 100% !important;
+    }
+
+    /* MODALS */
+    .modal-card {
+        padding: 28px 20px 24px !important;
+        border-radius: 20px !important;
+        margin: 0 8px;
+    }
+
+    /* CONSULTATION ROOM */
+    .consultation-container {
+        grid-template-columns: 1fr !important;
+        height: auto !important;
+    }
+
+    .prescription-sidebar {
+        display: none !important;
+    }
+
+    .chat-area {
+        height: calc(100vh - 120px) !important;
+    }
+
+    /* PROFILE */
+    .profile-container {
+        grid-template-columns: 1fr !important;
+    }
+
+    .profile-sidebar {
+        border-right: none !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        padding-bottom: 20px !important;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* ADMIN STATS */
+    .stats-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* REQUEST CARDS */
+    .request-card {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    /* HERO SECTION */
+    .hero {
+        flex-direction: column !important;
+        padding: 40px 16px !important;
+        text-align: center !important;
+        min-height: auto !important;
+    }
+
+    .hero-content h1 {
+        font-size: 2rem !important;
+    }
+
+    .hero-content p {
+        max-width: 100% !important;
+    }
+
+    .hero-actions {
+        justify-content: center !important;
+    }
+
+    .hero-image { display: none !important; }
+
+    /* HOW IT WORKS */
+    .steps {
+        flex-direction: column !important;
+        gap: 20px !important;
+        align-items: center !important;
+    }
+
+    .arrow { transform: rotate(90deg) !important; }
+
+    /* FEATURE GRID */
+    .feature-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* NAVBAR */
+    .navbar {
+        padding: 14px 5% !important;
+    }
+
+    .nav-links {
+        display: none !important;
+    }
+
+    /* STATS ROW (doctor dashboard) */
+    .stats-row {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    /* SESSION CARD */
+    .session-card {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .session-actions {
+        width: 100% !important;
+    }
+
+    .btn-end,
+    .btn-prescribe {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* BOTTOM NAV for mobile */
+    .mobile-bottom-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        padding: 8px 0 12px;
+        z-index: 150;
+        justify-content: space-around;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
+    }
+
+    /* Add padding to avoid bottom nav overlap */
+    .main-content {
+        padding-bottom: 80px !important;
+    }
+}
+
+/* ===========================
+   SMALL MOBILE (max-width: 400px)
+=========================== */
+@media (max-width: 400px) {
+    .doctor-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .stat-value {
+        font-size: 1.6rem !important;
+    }
+
+    .modal-card {
+        margin: 0 4px !important;
+    }
+}
+
+/* ===========================
+   MOBILE BOTTOM NAV
+=========================== */
+.mobile-bottom-nav {
+    display: none;
+}
+
+.mobile-bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    color: #9ca3af;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 8px;
+    transition: color 0.2s;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.mobile-bottom-nav a.active,
+.mobile-bottom-nav a:hover {
+    color: #059669;
+}
+
+.mobile-bottom-nav i {
+    font-size: 1.1rem;
+}
