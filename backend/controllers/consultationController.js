@@ -1,8 +1,14 @@
 
-const { createConsultationRequest, getDoctorConsultations, acceptConsultation,payConsultation ,startConsultation,completeConsultation,getConsultationById,} = require('../models/consultationModel');
-
+const { createConsultationRequest, getDoctorConsultations, acceptConsultation,payConsultation ,startConsultation,completeConsultation,getConsultationById,getPatientConsultations} = require('../models/consultationModel');
+let io; // will be set from server.js
+const setIO = (socketIO) => { io = socketIO; };
 const requestConsultation = async (req,res)=>{
-    const{ patient_id, doctor_id }=req.body;
+
+     console.log("req.user:", req.user); // ✅ debug
+    console.log("req.body:", req.body);
+    const patient_id=req.user.id;
+    const {doctor_id}= req.body
+    console.log("req.user:", req.user);
 
     try{
         const newRequest = await createConsultationRequest(patient_id, doctor_id);
@@ -16,10 +22,14 @@ const requestConsultation = async (req,res)=>{
 
 // Doctor views requests
 const viewDoctorConsultations = async (req, res) => {
+  
     const doctor_id = req.params.doctor_id;
+      console.log("Doctor ID received:", doctor_id);
 
     try {
         const consultations = await getDoctorConsultations(doctor_id);
+
+        console.log("Consultations found:", consultations);
         res.json(consultations);
     } catch (err) {
         console.error(err.message);
@@ -35,6 +45,16 @@ const acceptConsultationController = async (req, res) => {
 
         if (!updatedConsultation) {
             return res.status(404).json("Consultation not found");
+        }
+
+            // ✅ Emit real-time notification to patient
+        if (io) {
+            io.to(`user_${updatedConsultation.patient_id}`).emit('consultation_accepted', {
+                consultation_id: updatedConsultation.id,
+                message: 'Your consultation request has been accepted! Please proceed to payment.',
+                doctor_id: updatedConsultation.doctor_id
+            });
+            console.log(`✅ Notification sent to patient ${updatedConsultation.patient_id}`);
         }
 
         res.json(updatedConsultation);
@@ -118,6 +138,24 @@ const completeConsultationController = async (req, res) => {
     }
 };
 
+const viewPatientConsultations = async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+
+        // Security check — patient can only view their own consultations
+        if (req.user.id !== parseInt(patient_id)) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        const consultations = await getPatientConsultations(patient_id); // ✅ use model function
+
+        res.status(200).json(consultations);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching consultations" });
+    }
+};
+ 
 
 
-module.exports = { requestConsultation, viewDoctorConsultations, acceptConsultationController, payConsultationController, startConsultationController, completeConsultationController };
+module.exports = { requestConsultation, viewDoctorConsultations, acceptConsultationController, payConsultationController, startConsultationController, completeConsultationController ,viewPatientConsultations, setIO};
