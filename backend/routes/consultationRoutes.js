@@ -10,7 +10,9 @@ const {
     acceptConsultationController,
     payConsultationController,
     startConsultationController,
-    completeConsultationController
+    completeConsultationController,
+    viewPatientConsultations,
+    
 } = require('../controllers/consultationController');
 
 router.post("/request", verifyToken, checkRole("Patient"), requestConsultation);
@@ -19,5 +21,6 @@ router.put("/accept/:id", verifyToken, checkRole("Doctor"), acceptConsultationCo
 router.put("/start/:id", verifyToken, checkRole("Doctor"), startConsultationController);
 router.put("/complete/:id", verifyToken, checkRole("Doctor"), completeConsultationController);
 router.get("/doctor/:doctor_id", verifyToken, viewDoctorConsultations);
+router.get("/patient/:patient_id", verifyToken, checkRole("Patient"), viewPatientConsultations);
 
 module.exports = router;
