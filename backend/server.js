@@ -13,6 +13,7 @@ const consultationRoutes  = require('./routes/consultationRoutes');
 const prescriptionRoutes  = require('./routes/prescriptionRoutes');
 const messageRoutes       = require('./routes/messageRoutes');
 const mpesaRoutes         = require('./routes/mpesaRoutes');
+const authRoutes = require('./routes/authRoutes');
 const { setIO } = require('./controllers/consultationController');
 const adminRoutes = require('./routes/adminRoutes');
 
@@ -42,6 +43,7 @@ app.use('/api/consultations', consultationRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/mpesa', mpesaRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use('/api/admin', adminRoutes);
 
