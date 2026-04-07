@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultation Room | afyaConnect</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .consultation-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            height: calc(100vh - 120px);
+        }
+
+        .chat-area {
+            background: var(--white);
+            border-radius: 18px;
+            border: 1.5px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--green-light);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #f9fafb;
+        }
+
+        .msg {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+        .msg.doctor  { align-self: flex-start; background: var(--white); border: 1px solid var(--border); }
+        .msg.patient { align-self: flex-end; background: var(--green); color: white; }
+
+        .chat-input {
+            padding: 15px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .prescription-sidebar {
+            background: var(--white);
+            border-radius: 18px;
+            border: 1.5px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .prescription-form textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            resize: none;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        .prescription-form input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn-finish {
+            background: var(--red, #e53935);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: auto;
+        }
+
+        .empty-chat {
+            text-align: center;
+            color: #aaa;
+            margin: auto;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 900px) {
+            .consultation-container { grid-template-columns: 1fr; }
+            .prescription-sidebar   { display: none; }
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="dashboard-wrapper">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo">afya<span>Connect</span></div>
+            <nav class="side-nav">
+                <a href="#" class="nav-link" id="exitRoomBtn">
+                    <i class="fas fa-arrow-left"></i> Exit Room
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="section-header">
+                    <h2>Consultation Session</h2>
+                </div>
+                <div class="live-indicator">
+                    <span class="dot"></span> Secure Connection
+                </div>
+            </header>
+
+            <div class="consultation-container">
+
+                <!-- CHAT AREA -->
+                <div class="chat-area">
+                    <div class="chat-header">
+                        <div class="avatar-circle" style="width:35px; height:35px;" id="partnerAvatar">?</div>
+                        <div>
+                            <strong id="chatPartner">Loading...</strong>
+                            <p style="font-size: 0.7rem; color: var(--muted);">Active Now</p>
+                        </div>
+                    </div>
+
+                    <!-- ✅ Empty by default — messages loaded from DB -->
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="empty-chat" id="emptyChat">
+                            <i class="fas fa-comment-medical" style="font-size:2rem; margin-bottom:8px; display:block;"></i>
+                            No messages yet. Start the conversation!
+                        </div>
+                    </div>
+
+                    <div class="chat-input">
+                        <input type="text" id="messageInput" placeholder="Type your message...">
+                        <button class="btn-consult" id="sendBtn" style="width: auto; padding: 0 20px;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PRESCRIPTION SIDEBAR (Doctor only) -->
+                <div class="prescription-sidebar" id="doctorOnlySection">
+                    <h3><i class="fas fa-file-medical"></i> Prescription</h3>
+                    <div class="prescription-form">
+
+                        <div class="input-group">
+                            <label>Diagnosis</label>
+                            <input type="text" id="diagnosis" placeholder="e.g. Migraine">
+                        </div>
+
+                        <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
+
+                        <div class="input-group">
+                            <label>Medication Name</label>
+                            <input type="text" id="medName" placeholder="e.g. Paracetamol">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Dosage</label>
+                            <input type="text" id="dosage" placeholder="e.g. 500mg (1x3)">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Instructions</label>
+                            <textarea id="instructions" placeholder="e.g. Take after meals for 3 days"></textarea>
+                        </div>
+
+                        <div id="prescSuccess" style="display:none; color:#2e7d32; font-size:0.85rem; margin-top:8px;"></div>
+                        <div id="prescError"   style="display:none; color:#c62828; font-size:0.85rem; margin-top:8px;"></div>
+
+                        <button class="btn-consult" id="sendPrescriptionBtn" style="margin-top: 10px; width: 100%;">
+                            <i class="fas fa-paper-plane"></i> Send Prescription
+                        </button>
+                    </div>
+
+                    <button class="btn-finish" id="endConsultationBtn">
+                        <i class="fas fa-power-off"></i> End Consultation
+                    </button>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="consult.js"></script>
+</body>
+</html>

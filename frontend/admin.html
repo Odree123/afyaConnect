@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | AfyaConnect</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="admin-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">A</div>
+            <div>
+                <p class="brand-name">afyaConnect</p>
+                <p class="brand-role">Admin Panel</p>
+            </div>
+        </div>
+
+        <nav class="side-nav">
+            <a href="#" class="nav-link active" data-section="overview">
+                <i class="fas fa-chart-pie"></i> Overview
+            </a>
+            <a href="#" class="nav-link" data-section="users">
+                <i class="fas fa-users"></i> Patients
+            </a>
+            <a href="#" class="nav-link" data-section="doctors">
+                <i class="fas fa-user-md"></i> Doctors
+            </a>
+            <a href="#" class="nav-link" data-section="consultations">
+                <i class="fas fa-stethoscope"></i> Consultations
+            </a>
+            <a href="#" class="nav-link" data-section="prescriptions">
+                <i class="fas fa-file-medical"></i> Prescriptions
+            </a>
+            <a href="#" class="nav-link" data-section="payments">
+                <i class="fas fa-money-bill-wave"></i> Payments
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="admin-info">
+                <div class="admin-avatar" id="adminAvatar">AD</div>
+                <div>
+                    <p class="admin-name" id="adminName">Admin</p>
+                    <p class="admin-email" id="adminEmail">—</p>
+                </div>
+            </div>
+            <a href="#" class="btn-logout" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- TOP BAR -->
+        <header class="top-bar">
+            <div>
+                <h1 id="pageTitle">Overview</h1>
+                <p class="page-subtitle" id="pageSubtitle">System statistics and activity</p>
+            </div>
+            <div class="top-actions">
+                <button class="btn-refresh" onclick="refreshCurrentSection()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <div class="live-badge">
+                    <span class="live-dot"></span> Live
+                </div>
+            </div>
+        </header>
+
+        <!-- OVERVIEW SECTION -->
+        <section id="section-overview" class="admin-section">
+
+            <!-- STATS GRID -->
+            <div class="stats-grid">
+                <div class="stat-card teal">
+                    <div class="stat-icon"><i class="fas fa-user-injured"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Total Patients</p>
+                        <h2 class="stat-value" id="statPatients">—</h2>
+                    </div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-icon"><i class="fas fa-user-md"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Total Doctors</p>
+                        <h2 class="stat-value" id="statDoctors">—</h2>
+                    </div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-icon"><i class="fas fa-stethoscope"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Consultations</p>
+                        <h2 class="stat-value" id="statConsultations">—</h2>
+                    </div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon"><i class="fas fa-file-medical"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Prescriptions</p>
+                        <h2 class="stat-value" id="statPrescriptions">—</h2>
+                    </div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Paid Consultations</p>
+                        <h2 class="stat-value" id="statPaid">—</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT CONSULTATIONS -->
+            <div class="section-card">
+                <div class="card-header">
+                    <h3>Recent Consultations</h3>
+                    <span class="view-all" onclick="switchSection('consultations')">View All →</span>
+                </div>
+                <div id="recentConsultations" class="table-container">
+                    <div class="loading-state"><div class="spinner"></div><p>Loading...</p></div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- PATIENTS SECTION -->
+        <section id="section-users" class="admin-section" style="display:none;">
+            <div class="section-card">
+                <div class="card-header">
+                    <h3>All Patients</h3>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="userSearch" placeholder="Search patients..." onkeyup="filterTable('usersTable', this.value)">
+                    </div>
+                </div>
+                <div id="usersTable" class="table-container">
+                    <div class="loading-state"><div class="spinner"></div><p>Loading patients...</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DOCTORS SECTION -->
+        <section id="section-doctors" class="admin-section" style="display:none;">
+            <div class="section-card">
+                <div class="card-header">
+                    <h3>All Doctors</h3>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="doctorSearch" placeholder="Search doctors..." onkeyup="filterTable('doctorsTable', this.value)">
+                    </div>
+                </div>
+                <div id="doctorsTable" class="table-container">
+                    <div class="loading-state"><div class="spinner"></div><p>Loading doctors...</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONSULTATIONS SECTION -->
+        <section id="section-consultations" class="admin-section" style="display:none;">
+            <div class="section-card">
+                <div class="card-header">
+                    <h3>All Consultations</h3>
+                    <div class="filter-row">
+                        <select id="statusFilter" onchange="filterConsultations()">
+                            <option value="">All Statuses</option>
+                            <option value="requested">Requested</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="paid">Paid</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="consultationsTable" class="table-container">
+                    <div class="loading-state"><div class="spinner"></div><p>Loading consultations...</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRESCRIPTIONS SECTION -->
+        <section id="section-prescriptions" class="admin-section" style="display:none;">
+            <div class="section-card">
+                <div class="card-header">
+                    <h3>All Prescriptions</h3>
+                </div>
+                <div id="prescriptionsTable" class="table-container">
+                    <div class="loading-state"><div class="spinner"></div><p>Loading prescriptions...</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAYMENTS SECTION -->
+        <section id="section-payments" class="admin-section" style="display:none;">
+            <div class="section-card">
+                <div class="card-header">
+                    <h3>Payment Records</h3>
+                </div>
+                <div id="paymentsTable" class="table-container">
+                    <div class="loading-state"><div class="spinner"></div><p>Loading payments...</p></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-card small">
+        <button class="modal-close" onclick="closeConfirm()">✕</button>
+        <h3 id="confirmTitle">Confirm Action</h3>
+        <p id="confirmMessage">Are you sure?</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+            <button class="btn-confirm-action" id="confirmBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- ROLE MODAL -->
+<div id="roleModal" class="modal-overlay">
+    <div class="modal-card small">
+        <button class="modal-close" onclick="closeModalById('roleModal')">✕</button>
+        <h3>Change User Role</h3>
+        <p id="roleUserName" style="color: var(--muted); margin-bottom: 16px;"></p>
+        <select id="roleSelect" class="role-select">
+            <option value="Patient">Patient</option>
+            <option value="Doctor">Doctor</option>
+            <option value="Admin">Admin</option>
+        </select>
+        <button class="btn-save-role" id="saveRoleBtn">Save Role</button>
+    </div>
+</div>
+
+<!-- DOCTOR DETAILS MODAL -->
+<div id="doctorModal" class="modal-overlay">
+    <div class="modal-card">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <h2>Doctor Details</h2>
+        <div class="doctor-details">
+            <p><strong>Name:</strong> <span id="docName"></span></p>
+            <p><strong>Email:</strong> <span id="docEmail"></span></p>
+            <p><strong>Phone:</strong> <span id="docPhone"></span></p>
+            <p><strong>Specialization:</strong> <span id="docSpecialization"></span></p>
+            <p><strong>License Number:</strong> <span id="docLicense"></span></p>
+            <p><strong>Status:</strong> <span id="docStatus"></span></p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

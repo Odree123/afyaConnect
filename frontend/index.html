@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AfyaConnect | Real-Time Health</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="mobile.css">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="logo">afya<span>Connect</span></div>
+        <ul class="nav-links">
+            <li><a href="#how-it-works">How it Works</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#testimonials">Testimonials</a></li>
+            <li><button class="btn-login" id="openLogin">Login / Sign Up</button></li>
+        </ul>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">Doctors available now</div>
+            <h1>Connect with a doctor <br><span class="highlight">In seconds.</span></h1>
+            <p>No appointments. No waiting rooms. Just instant consultations with verified doctors.</p>
+            <div class="hero-actions">
+                <button class="btn-primary" id="getStarted">Start Consultation</button>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="images/doctor-patient.jpg" alt="Doctor and Patient" onerror="this.style.display='none'">
+        </div>
+    </header>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-it-works" id="how-it-works">
+        <span class="section-label">Simple Process</span>
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <img src="https://cdn-icons-png.flaticon.com/512/747/747376.png" alt="Login">
+                <p>Login</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+                <img src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png" alt="Doctor">
+                <p>Choose Doctor</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+                <img src="https://cdn-icons-png.flaticon.com/512/942/942748.png" alt="Request">
+                <p>Request Consultation</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Pay">
+                <p>Pay via M-PESA</p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="step">
+                <img src="https://cdn-icons-png.flaticon.com/512/9068/9068756.png" alt="Consult">
+                <p>Start Consultation</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features" id="features">
+        <span class="section-label">Why Us</span>
+        <h2>Why Choose AfyaConnect</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Real-Time Consultation</h3>
+                <p>Connect instantly with available doctors — no scheduling, no waiting rooms.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>M-PESA Payments</h3>
+                <p>Fast and secure mobile payments via M-PESA. Pay only after a doctor accepts.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Digital Prescriptions</h3>
+                <p>Receive your prescription digitally at the end of every consultation session.</p>
+            </div>
+        </div>
+    </section>
+  <!-- TESTIMONIALS -->
+<section class="testimonials" id="testimonials">
+    <span class="section-label">Patient Reviews</span>
+    <h2>What Our Patients Say</h2>
+    <div class="testimonial-container">
+        <div class="testimonial-card">
+            <div class="feature-icon">⭐</div>
+            <h3>"AfyaConnect made it so easy!"</h3>
+            <p>AfyaConnect made it so easy to talk to a doctor from home. I got help within minutes.</p>
+            <div class="testimonial-author">
+                <div class="author-avatar">KE</div>
+                <div>
+                    <p class="author-name">Kipkemoi E.</p>
+                    <p class="author-role">Patient</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-card">
+            <div class="feature-icon">⭐</div>
+            <h3>"Fast and professional!"</h3>
+            <p>Fast consultation and very professional doctors. The M-PESA payment was seamless.</p>
+            <div class="testimonial-author">
+                <div class="author-avatar">EO</div>
+                <div>
+                    <p class="author-name">Emmanuel O.</p>
+                    <p class="author-role">Patient</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-card">
+            <div class="feature-icon">⭐</div>
+            <h3>"Highly recommend!"</h3>
+            <p>I paid and got help instantly. The prescription was sent right after the consultation.</p>
+            <div class="testimonial-author">
+                <div class="author-avatar">AK</div>
+                <div>
+                    <p class="author-name">Ashley K.</p>
+                    <p class="author-role">Patient</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+    
+
+    <!-- MODAL OVERLAY -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <button class="modal-close" id="closeModal">✕</button>
+
+            <!-- LOGIN VIEW -->
+            <div id="loginView">
+                <h2>Welcome back</h2>
+                <p class="subtitle">Log in to connect with a doctor</p>
+                <div class="error-msg" id="loginError"></div>
+                <div class="success-msg" id="loginSuccess"></div>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <input type="email" id="loginEmail" placeholder="name@example.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPass" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-modal">Login</button>
+                </form>
+                <p class="modal-toggle">New here? <a href="#" id="showSignup">Create an account</a></p>
+            </div>
+        
+            <!-- SIGNUP VIEW -->
+          <div id="signupView">
+    <h2>Create Account</h2>
+    <p class="subtitle">Join AfyaConnect today — it's free</p>
+    <div class="error-msg" id="signupError"></div>
+    <div class="success-msg" id="signupSuccess"></div>
+    
+    <form id="signupForm">
+        <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="regName" placeholder="e.g. Audrey Pendo" required>
+        </div>
+        <div class="input-group">
+            <label>Email Address</label>
+            <input type="email" id="regEmail" placeholder="name@example.com" required>
+        </div>
+        <div class="input-group">
+            <label>Phone Number (M-PESA)</label>
+            <input type="tel" id="regPhone" placeholder="0712345678" required>
+        </div>
+
+        <div class="input-group">
+            <label>Register as</label>
+            <select id="regRole" onchange="toggleDoctorFields()" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
+                <option value="Patient">Patient</option>
+                <option value="Doctor">Doctor / Medical Professional</option>
+            </select>
+        </div>
+
+        <div id="doctorFields" style="display:none;">
+            <div class="input-group">
+                <label>Medical License Number</label>
+                <input type="text" id="regLicense" placeholder="e.g. MED-12345-KE">
+            </div>
+            <div class="input-group">
+                <label>Specialization</label>
+                <select id="regSpecialization" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
+                    <option value="">Select Specialization</option>
+                    <option value="General Practitioner">General Practitioner</option>
+                    <option value="Pediatrician">Pediatrician</option>
+                    <option value="Cardiologist">Cardiologist</option>
+                    <option value="Dermatologist">Dermatologist</option>
+                    <option value="Gynecologist">Gynecologist</option>
+                    <option value="Psychiatrist">Psychiatrist</option>
+                    <option value="Orthopedic Surgeon">Orthopedic Surgeon</option>
+                    <option value="ENT Specialist">ENT Specialist</option>
+                </select>
+            </div>
+            <p style="font-size:0.78rem; color:#6b7280; background:#fef9c3; padding:8px 12px; border-radius:8px; margin-top:-8px; margin-bottom:15px;">
+                ⚠️ Doctor accounts require admin approval before activation.
+            </p>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="regPass" placeholder="••••••••" required>
+        </div>
+        
+        <div class="input-group">
+            <label>Confirm Password</label>
+            <input type="password" id="regConfirmPass" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-modal">Create Account</button>
+    </form>
+    <p class="modal-toggle">Already have an account? <a href="#" id="showLogin">Login here</a></p>
+</div>
+
+        
+
+          
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="mobile.js"></script>
+</body>
+
+<footer class="footer">
+    <p>© 2026 AfyaConnect. All rights reserved.</p>
+    
+</footer>
+</html>
