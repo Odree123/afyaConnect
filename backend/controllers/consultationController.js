@@ -4,8 +4,7 @@ let io; // will be set from server.js
 const setIO = (socketIO) => { io = socketIO; };
 const requestConsultation = async (req,res)=>{
 
-     console.log("req.user:", req.user); // ✅ debug
-    console.log("req.body:", req.body);
+     
     const patient_id=req.user.id;
     const {doctor_id}= req.body
     console.log("req.user:", req.user);
