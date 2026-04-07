@@ -21,15 +21,19 @@
 
 body {
     background-color: #ecfdf5;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     line-height: 1.6;
 }
 
-h1, h2, h3, h4, .logo {
-    font-family: Arial, Helvetica, sans-serif;
+/* Consistent headings */
+h1, h2, h3, h4, h5, h6, .logo {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
 }
-p {
-    font-family: 'Courier New', Courier, monospace;
+
+/* All text elements */
+p, span, a, li, div, button, input, select, textarea, label {
+    font-family: 'Inter', sans-serif;
 }
 
 /* ===========================
@@ -50,7 +54,7 @@ p {
 
 .logo {
     font-size: 22px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--green);
     letter-spacing: -0.5px;
 }
@@ -90,7 +94,7 @@ p {
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Inter', sans-serif;
     transition: all 0.2s;
 }
 
@@ -109,7 +113,7 @@ p {
     border-radius: 50px;
     font-size: 1rem;
     font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: all 0.2s;
     box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3);
@@ -183,7 +187,7 @@ p {
     color: var(--muted);
     margin-bottom: 36px;
     max-width: 460px;
-    font-weight: 300;
+    font-weight: 400;
 }
 
 .hero-actions {
@@ -203,7 +207,7 @@ p {
     border-radius: 24px;
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
     position: relative;
-    z-index: 10; 
+    z-index: 10;
     display: block;
 }
 
@@ -272,10 +276,9 @@ p {
 }
 
 .step p {
-    font-weight: 700;
+    font-weight: 600;
     font-size: 0.88rem;
     color: var(--text);
-    font-family: DM Sans', sans-serif;
 }
 
 .arrow {
@@ -348,6 +351,7 @@ p {
 .feature-card p {
     color: var(--muted);
     font-size: 0.95rem;
+    font-weight: 400;
 }
 
 /* ===========================
@@ -379,7 +383,9 @@ p {
 .testimonial-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 3px;
     background: var(--green);
 }
@@ -401,7 +407,7 @@ p {
     color: var(--muted);
     font-size: 0.95rem;
     margin-bottom: 24px;
-    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
 }
 
 .testimonial-author {
@@ -430,14 +436,12 @@ p {
     font-weight: 700;
     font-size: 0.88rem;
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
     margin: 0;
 }
 
 .author-role {
     font-size: 0.75rem;
     color: var(--muted);
-    font-family: 'DM Sans', sans-serif;
     margin: 0;
 }
 
@@ -517,6 +521,7 @@ p {
     color: var(--muted);
     font-size: 0.92rem;
     margin-bottom: 28px;
+    font-weight: 400;
 }
 
 #signupView {
@@ -543,7 +548,7 @@ p {
     border-radius: 12px;
     outline: none;
     font-size: 0.95rem;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Inter', sans-serif;
     transition: border-color 0.2s;
     background: #ecfdf5;
 }
@@ -562,7 +567,7 @@ p {
     border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: all 0.2s;
     margin-top: 8px;

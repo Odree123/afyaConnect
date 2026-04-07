@@ -2,15 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>AfyaConnect | Real-Time Health</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
-    <!-- NAVBAR -->
+    <!-- MOBILE SIDEBAR (Added for hamburger menu) -->
+    <div class="sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">afya<span>Connect</span></div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#home" class="nav-link active" data-section="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#how-it-works" class="nav-link" data-section="howitworks">
+                <i class="fas fa-info-circle"></i>
+                <span>How It Works</span>
+            </a>
+            <a href="#features" class="nav-link" data-section="features">
+                <i class="fas fa-star"></i>
+                <span>Features</span>
+            </a>
+            <a href="#testimonials" class="nav-link" data-section="testimonials">
+                <i class="fas fa-comment"></i>
+                <span>Testimonials</span>
+            </a>
+            <a href="#" class="nav-link" id="mobileLoginBtn">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Login / Sign Up</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <small>© 2026 AfyaConnect</small>
+        </div>
+    </div>
+
+    <!-- DESKTOP NAVBAR -->
     <nav class="navbar">
         <div class="logo">afya<span>Connect</span></div>
         <ul class="nav-links">
@@ -21,8 +54,8 @@
         </ul>
     </nav>
 
-    <!-- HERO -->
-    <header class="hero">
+    <!-- HERO SECTION -->
+    <header class="hero" id="home">
         <div class="hero-content">
             <div class="hero-badge">Doctors available now</div>
             <h1>Connect with a doctor <br><span class="highlight">In seconds.</span></h1>
@@ -90,52 +123,50 @@
             </div>
         </div>
     </section>
-  <!-- TESTIMONIALS -->
-<section class="testimonials" id="testimonials">
-    <span class="section-label">Patient Reviews</span>
-    <h2>What Our Patients Say</h2>
-    <div class="testimonial-container">
-        <div class="testimonial-card">
-            <div class="feature-icon">⭐</div>
-            <h3>"AfyaConnect made it so easy!"</h3>
-            <p>AfyaConnect made it so easy to talk to a doctor from home. I got help within minutes.</p>
-            <div class="testimonial-author">
-                <div class="author-avatar">KE</div>
-                <div>
-                    <p class="author-name">Kipkemoi E.</p>
-                    <p class="author-role">Patient</p>
-                </div>
-            </div>
-        </div>
 
-        <div class="testimonial-card">
-            <div class="feature-icon">⭐</div>
-            <h3>"Fast and professional!"</h3>
-            <p>Fast consultation and very professional doctors. The M-PESA payment was seamless.</p>
-            <div class="testimonial-author">
-                <div class="author-avatar">EO</div>
-                <div>
-                    <p class="author-name">Emmanuel O.</p>
-                    <p class="author-role">Patient</p>
+    <!-- TESTIMONIALS -->
+    <section class="testimonials" id="testimonials">
+        <span class="section-label">Patient Reviews</span>
+        <h2>What Our Patients Say</h2>
+        <div class="testimonial-container">
+            <div class="testimonial-card">
+                <div class="feature-icon">⭐</div>
+                <h3>"AfyaConnect made it so easy!"</h3>
+                <p>AfyaConnect made it so easy to talk to a doctor from home. I got help within minutes.</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">KE</div>
+                    <div>
+                        <p class="author-name">Kipkemoi E.</p>
+                        <p class="author-role">Patient</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="feature-icon">⭐</div>
+                <h3>"Fast and professional!"</h3>
+                <p>Fast consultation and very professional doctors. The M-PESA payment was seamless.</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">EO</div>
+                    <div>
+                        <p class="author-name">Emmanuel O.</p>
+                        <p class="author-role">Patient</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="feature-icon">⭐</div>
+                <h3>"Highly recommend!"</h3>
+                <p>I paid and got help instantly. The prescription was sent right after the consultation.</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">AK</div>
+                    <div>
+                        <p class="author-name">Ashley K.</p>
+                        <p class="author-role">Patient</p>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="testimonial-card">
-            <div class="feature-icon">⭐</div>
-            <h3>"Highly recommend!"</h3>
-            <p>I paid and got help instantly. The prescription was sent right after the consultation.</p>
-            <div class="testimonial-author">
-                <div class="author-avatar">AK</div>
-                <div>
-                    <p class="author-name">Ashley K.</p>
-                    <p class="author-role">Patient</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-    
+    </section>
 
     <!-- MODAL OVERLAY -->
     <div class="modal-overlay" id="modalOverlay">
@@ -161,87 +192,127 @@
                 </form>
                 <p class="modal-toggle">New here? <a href="#" id="showSignup">Create an account</a></p>
             </div>
-        
+
             <!-- SIGNUP VIEW -->
-          <div id="signupView">
-    <h2>Create Account</h2>
-    <p class="subtitle">Join AfyaConnect today — it's free</p>
-    <div class="error-msg" id="signupError"></div>
-    <div class="success-msg" id="signupSuccess"></div>
-    
-    <form id="signupForm">
-        <div class="input-group">
-            <label>Full Name</label>
-            <input type="text" id="regName" placeholder="e.g. Audrey Pendo" required>
-        </div>
-        <div class="input-group">
-            <label>Email Address</label>
-            <input type="email" id="regEmail" placeholder="name@example.com" required>
-        </div>
-        <div class="input-group">
-            <label>Phone Number (M-PESA)</label>
-            <input type="tel" id="regPhone" placeholder="0712345678" required>
-        </div>
+            <div id="signupView" style="display:none;">
+                <h2>Create Account</h2>
+                <p class="subtitle">Join AfyaConnect today — it's free</p>
+                <div class="error-msg" id="signupError"></div>
+                <div class="success-msg" id="signupSuccess"></div>
+                
+                <form id="signupForm">
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <input type="text" id="regName" placeholder="e.g. Audrey Pendo" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <input type="email" id="regEmail" placeholder="name@example.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Phone Number (M-PESA)</label>
+                        <input type="tel" id="regPhone" placeholder="0712345678" required>
+                    </div>
 
-        <div class="input-group">
-            <label>Register as</label>
-            <select id="regRole" onchange="toggleDoctorFields()" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
-                <option value="Patient">Patient</option>
-                <option value="Doctor">Doctor / Medical Professional</option>
-            </select>
-        </div>
+                    <div class="input-group">
+                        <label>Register as</label>
+                        <select id="regRole" onchange="toggleDoctorFields()" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
+                            <option value="Patient">Patient</option>
+                            <option value="Doctor">Doctor / Medical Professional</option>
+                        </select>
+                    </div>
 
-        <div id="doctorFields" style="display:none;">
-            <div class="input-group">
-                <label>Medical License Number</label>
-                <input type="text" id="regLicense" placeholder="e.g. MED-12345-KE">
+                    <div id="doctorFields" style="display:none;">
+                        <div class="input-group">
+                            <label>Medical License Number</label>
+                            <input type="text" id="regLicense" placeholder="e.g. MED-12345-KE">
+                        </div>
+                        <div class="input-group">
+                            <label>Specialization</label>
+                            <select id="regSpecialization" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
+                                <option value="">Select Specialization</option>
+                                <option value="General Practitioner">General Practitioner</option>
+                                <option value="Pediatrician">Pediatrician</option>
+                                <option value="Cardiologist">Cardiologist</option>
+                                <option value="Dermatologist">Dermatologist</option>
+                                <option value="Gynecologist">Gynecologist</option>
+                                <option value="Psychiatrist">Psychiatrist</option>
+                                <option value="Orthopedic Surgeon">Orthopedic Surgeon</option>
+                                <option value="ENT Specialist">ENT Specialist</option>
+                            </select>
+                        </div>
+                        <p style="font-size:0.78rem; color:#6b7280; background:#fef9c3; padding:8px 12px; border-radius:8px; margin-top:-8px; margin-bottom:15px;">
+                            ⚠️ Doctor accounts require admin approval before activation.
+                        </p>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="regPass" placeholder="••••••••" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="regConfirmPass" placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" class="btn-modal">Create Account</button>
+                </form>
+                <p class="modal-toggle">Already have an account? <a href="#" id="showLogin">Login here</a></p>
             </div>
-            <div class="input-group">
-                <label>Specialization</label>
-                <select id="regSpecialization" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
-                    <option value="">Select Specialization</option>
-                    <option value="General Practitioner">General Practitioner</option>
-                    <option value="Pediatrician">Pediatrician</option>
-                    <option value="Cardiologist">Cardiologist</option>
-                    <option value="Dermatologist">Dermatologist</option>
-                    <option value="Gynecologist">Gynecologist</option>
-                    <option value="Psychiatrist">Psychiatrist</option>
-                    <option value="Orthopedic Surgeon">Orthopedic Surgeon</option>
-                    <option value="ENT Specialist">ENT Specialist</option>
-                </select>
-            </div>
-            <p style="font-size:0.78rem; color:#6b7280; background:#fef9c3; padding:8px 12px; border-radius:8px; margin-top:-8px; margin-bottom:15px;">
-                ⚠️ Doctor accounts require admin approval before activation.
-            </p>
-        </div>
-
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="regPass" placeholder="••••••••" required>
-        </div>
-        
-        <div class="input-group">
-            <label>Confirm Password</label>
-            <input type="password" id="regConfirmPass" placeholder="••••••••" required>
-        </div>
-
-        <button type="submit" class="btn-modal">Create Account</button>
-    </form>
-    <p class="modal-toggle">Already have an account? <a href="#" id="showLogin">Login here</a></p>
-</div>
-
-        
-
-          
         </div>
     </div>
 
+    <footer class="footer">
+        <p>© 2026 AfyaConnect. All rights reserved.</p>
+    </footer>
+
     <script src="script.js"></script>
     <script src="mobile.js"></script>
-</body>
 
-<footer class="footer">
-    <p>© 2026 AfyaConnect. All rights reserved.</p>
-    
-</footer>
+    <!-- Additional script to connect mobile sidebar with modal -->
+    <script>
+        // Connect mobile sidebar login button to modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+            const openLoginBtn = document.getElementById('openLogin');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const closeModal = document.getElementById('closeModal');
+
+            function openModal() {
+                modalOverlay.style.display = 'flex';
+            }
+
+            if (mobileLoginBtn) {
+                mobileLoginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openModal();
+                    // Close sidebar after clicking
+                    if (typeof closeSidebar === 'function') {
+                        closeSidebar();
+                    }
+                });
+            }
+
+            if (openLoginBtn) {
+                openLoginBtn.addEventListener('click', openModal);
+            }
+
+            if (closeModal) {
+                closeModal.addEventListener('click', function() {
+                    modalOverlay.style.display = 'none';
+                });
+            }
+
+            // Close modal when clicking outside
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', function(e) {
+                    if (e.target === modalOverlay) {
+                        modalOverlay.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
 </html>

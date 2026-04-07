@@ -1,5 +1,3 @@
-
-
 // ===========================
 // AFYACONNECT MOBILE JS
 // Add <script src="mobile.js"> 
@@ -40,6 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const hamburger = document.getElementById('hamburgerBtn');
     const sidebar   = document.querySelector('.sidebar');
 
+    // Make closeSidebar available globally (for other scripts)
+    window.closeSidebar = function() {
+        if (hamburger) hamburger.classList.remove('open');
+        if (sidebar)   sidebar.classList.remove('open');
+        if (overlay)   overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+
     if (hamburger && sidebar) {
         hamburger.addEventListener('click', () => {
             hamburger.classList.toggle('open');
@@ -49,26 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Close sidebar when overlay clicked
-        overlay.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', window.closeSidebar);
 
         // Close sidebar when nav link clicked
         sidebar.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) closeSidebar();
+                if (window.innerWidth <= 768) window.closeSidebar();
             });
         });
 
         // Close on escape key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeSidebar();
+            if (e.key === 'Escape') window.closeSidebar();
         });
-    }
-
-    function closeSidebar() {
-        if (hamburger) hamburger.classList.remove('open');
-        if (sidebar)   sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
     }
 
     // ===========================
@@ -180,7 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.switchDoctorSection = (section) => {
         document.querySelectorAll('.mobile-bottom-nav a').forEach(a => a.classList.remove('active'));
-        event.currentTarget?.classList.add('active');
+        // Find the clicked link and add active class
+        const clickedLink = Array.from(document.querySelectorAll('.mobile-bottom-nav a')).find(
+            a => a.textContent.toLowerCase().includes(section) || 
+                 a.getAttribute('onclick')?.includes(section)
+        );
+        if (clickedLink) clickedLink.classList.add('active');
+        
         const link = document.querySelector(`.nav-link[data-section="${section}"]`);
         if (link) link.click();
     };
@@ -192,12 +197,12 @@ document.addEventListener('DOMContentLoaded', () => {
         let startX, scrollLeft;
 
         container.addEventListener('touchstart', (e) => {
-            startX    = e.touches[0].pageX - container.offsetLeft;
+            startX = e.touches[0].pageX - container.offsetLeft;
             scrollLeft = container.scrollLeft;
         });
 
         container.addEventListener('touchmove', (e) => {
-            const x    = e.touches[0].pageX - container.offsetLeft;
+            const x = e.touches[0].pageX - container.offsetLeft;
             const walk = (x - startX) * 1.5;
             container.scrollLeft = scrollLeft - walk;
         });
