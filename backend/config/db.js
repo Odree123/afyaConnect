@@ -1,25 +1,25 @@
-
 require('dotenv').config();
-const {Pool} =require('pg');
+const { Pool } = require('pg');
 
-const pool = new Pool({
-    user:process.env.DB_USER,
-    host:process.env.DB_HOST,
-    database:process.env.DB_NAME,
-    password:process.env.DB_PASSWORD,
-    port:process.env.DB_PORT
-});
+let pool;
 
-pool.connect((err) => {
-    if (err){
-        console.error('Connection Error',err.stack)
+if (process.env.DATABASE_URL) {
+  // 🚀 Production (Render)
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
     }
-    else{
-        console.log('Connected to Afya_connect database')
-    }
-   
-
-
-});
+  });
+} else {
+  // 💻 Local development
+  pool = new Pool({
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT
+  });
+}
 
 module.exports = pool;
