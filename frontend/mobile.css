@@ -504,3 +504,18 @@
         padding-bottom: 0;
     }
 }
+/* Make sure sidebar links are clickable */
+.sidebar {
+    z-index: 10000 !important;
+}
+
+.sidebar-nav .nav-link {
+    cursor: pointer;
+    pointer-events: auto;
+    position: relative;
+    z-index: 10001;
+}
+
+.sidebar-overlay {
+    z-index: 9999 !important;
+}

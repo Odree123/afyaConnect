@@ -33,34 +33,80 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(overlay);
 
     // ===========================
-    // HAMBURGER TOGGLE
+    // HAMBURGER TOGGLE (Fixed)
     // ===========================
     const hamburger = document.getElementById('hamburgerBtn');
-    const sidebar   = document.querySelector('.sidebar');
+    const sidebar = document.querySelector('.sidebar');
+    const overlayEl = document.querySelector('.sidebar-overlay');
 
-    // Make closeSidebar available globally (for other scripts)
+    // Make closeSidebar available globally
     window.closeSidebar = function() {
         if (hamburger) hamburger.classList.remove('open');
-        if (sidebar)   sidebar.classList.remove('open');
-        if (overlay)   overlay.classList.remove('active');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlayEl) overlayEl.classList.remove('active');
         document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
     };
 
-    if (hamburger && sidebar) {
-        hamburger.addEventListener('click', () => {
+    if (hamburger && sidebar && overlayEl) {
+        // Open/close on hamburger click
+        hamburger.addEventListener('click', (e) => {
+            e.stopPropagation();
             hamburger.classList.toggle('open');
             sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+            overlayEl.classList.toggle('active');
+            
+            if (sidebar.classList.contains('open')) {
+                document.body.style.overflow = 'hidden';
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
+            } else {
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+            }
         });
 
-        // Close sidebar when overlay clicked
-        overlay.addEventListener('click', window.closeSidebar);
+        // Close when overlay clicked
+        overlayEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.closeSidebar();
+        });
 
-        // Close sidebar when nav link clicked
-        sidebar.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) window.closeSidebar();
+        // Close when clicking a nav link - FIXED for smooth scrolling
+        const navLinks = sidebar.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                
+                // Check if it's a section link (starts with #)
+                if (href && href.startsWith('#')) {
+                    e.preventDefault();
+                    const targetId = href.substring(1); // Remove the #
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        // Close sidebar first
+                        window.closeSidebar();
+                        // Scroll to element after sidebar closes
+                        setTimeout(() => {
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }, 300);
+                    }
+                } else if (href && href !== '#') {
+                    // External page link
+                    window.closeSidebar();
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 150);
+                } else {
+                    // Just close sidebar (for buttons like login)
+                    window.closeSidebar();
+                }
             });
         });
 
@@ -74,9 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // INJECT MOBILE BOTTOM NAV
     // (for dashboard and doctor pages)
     // ===========================
-    const isDashboard    = window.location.pathname.includes('dashboard');
-    const isDoctorPage   = window.location.pathname.includes('doctor');
-    const isAdminPage    = window.location.pathname.includes('admin');
+    const isDashboard = window.location.pathname.includes('dashboard');
+    const isDoctorPage = window.location.pathname.includes('doctor');
+    const isAdminPage = window.location.pathname.includes('admin');
     const isConsultation = window.location.pathname.includes('consultation');
 
     if (isDashboard) {
@@ -210,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===========================
     // FIX VIEWPORT HEIGHT on mobile
-    // (fix for address bar on iOS/Android)
     // ===========================
     function setVH() {
         const vh = window.innerHeight * 0.01;
