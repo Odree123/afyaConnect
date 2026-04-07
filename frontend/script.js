@@ -1,4 +1,7 @@
-const API_URL = 'http://localhost:5000';
+// This ensures it works locally AND on the live site
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000'
+    : 'https://afyaconnect-mlly.onrender.com';
 
 // ===========================
 // ELEMENT REFERENCES
