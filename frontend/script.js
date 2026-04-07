@@ -21,21 +21,14 @@ function closeModal() {
     clearMessages();
 }
 
-// Open via navbar button
-document.getElementById('openLogin').addEventListener('click', () => openModal('login'));
+document.getElementById('openLogin')?.addEventListener('click', () => openModal('login'));
+document.getElementById('getStarted')?.addEventListener('click', () => openModal('login'));
+document.getElementById('closeModal')?.addEventListener('click', closeModal);
 
-// Open via hero button
-document.getElementById('getStarted').addEventListener('click', () => openModal('login'));
-
-// Close via ✕ button
-document.getElementById('closeModal').addEventListener('click', closeModal);
-
-// Close by clicking outside the card
 modalOverlay.addEventListener('click', (e) => {
     if (e.target === modalOverlay) closeModal();
 });
 
-// Close with Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
 });
@@ -62,14 +55,20 @@ document.getElementById('showLogin').addEventListener('click', (e) => {
 // ===========================
 function showError(id, msg) {
     const el = document.getElementById(id);
-    el.textContent = msg;
-    el.style.display = 'block';
+    if (el) {
+        el.textContent = msg;
+        el.style.display = 'block';
+        el.className = 'error-message'; // Ensure CSS styling applies
+    }
 }
 
 function showSuccess(id, msg) {
     const el = document.getElementById(id);
-    el.textContent = msg;
-    el.style.display = 'block';
+    if (el) {
+        el.textContent = msg;
+        el.style.display = 'block';
+        el.className = 'success-message';
+    }
 }
 
 function clearMessages() {
@@ -83,6 +82,18 @@ function setLoading(btn, loading, defaultText) {
     btn.disabled    = loading;
     btn.textContent = loading ? 'Please wait...' : defaultText;
 }
+
+// Handle showing/hiding doctor-specific fields
+function toggleDoctorFields() {
+    const role = document.getElementById('regRole').value;
+    const doctorFields = document.getElementById('doctorFields');
+    if (doctorFields) {
+        doctorFields.style.display = (role === 'Doctor') ? 'block' : 'none';
+    }
+}
+
+// Add event listener for the role dropdown
+document.getElementById('regRole')?.addEventListener('change', toggleDoctorFields);
 
 // ===========================
 // LOGIN FORM
@@ -107,96 +118,111 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const data = await res.json();
 
         if (!res.ok) {
-            showError('loginError', data || 'Login failed. Please try again.');
+            showError('loginError', data.error || data.message || 'Login failed.');
         } else {
-            // Save token and user info
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
             showSuccess('loginSuccess', `Welcome back, ${data.user.name}! Redirecting...`);
 
             setTimeout(() => {
-                closeModal();
-
-                const user = JSON.parse(localStorage.getItem('user'));
-                console.log("Redirecting user:", user);
-
-                setTimeout(() => {
-                    if (data.user.role === 'Admin') {
-                        window.location.href = 'admin.html';
-                    } else if (data.user.role === 'Doctor') {
-                        window.location.href = 'doctor.html';
-                    } else {        
-                        window.location.href = 'dashboard.html';
-                    }
-                }, 1500);
-            }, 0);
+                if (data.user.role === 'Admin') {
+                    window.location.href = 'admin.html';
+                } else if (data.user.role === 'Doctor') {
+                    window.location.href = 'doctor.html';
+                } else {        
+                    window.location.href = 'dashboard.html';
+                }
+            }, 1500);
         }
     } catch (err) {
-        showError('loginError', 'Cannot connect to server. Make sure your backend is running.');
+        showError('loginError', 'Connection error. Is the backend running?');
     } finally {
         setLoading(btn, false, 'Login');
     }
 });
 
 // ===========================
-// SIGNUP FORM
+// SIGNUP FORM (CORRECTED)
 // ===========================
 document.getElementById('signupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     clearMessages();
 
+    // Standard Fields
     const name     = document.getElementById('regName').value.trim();
     const email    = document.getElementById('regEmail').value.trim();
     const phone    = document.getElementById('regPhone').value.trim();
     const password = document.getElementById('regPass').value;
-    const btn      = e.target.querySelector('button[type="submit"]');
+    const role     = document.getElementById('regRole').value;
+    
+    // Doctor Specific Fields (Mapping to Backend license_number)
+    const license_number = document.getElementById('regLicense').value.trim();
+    const specialization = document.getElementById('regSpecialization').value;
 
-    // Basic validation
-    if (phone.length < 10) {
-        showError('signupError', 'Please enter a valid phone number.');
-        return;
-    }
+    const btn = e.target.querySelector('button[type="submit"]');
 
+    // Validation
     if (password.length < 6) {
         showError('signupError', 'Password must be at least 6 characters.');
         return;
+    }
+    
+    if (role === 'Doctor') {
+        if (!license_number) {
+            showError('signupError', 'Medical License Number is required for doctors.');
+            return;
+        }
+        if (!specialization) {
+            showError('signupError', 'Please select your specialization.');
+            return;
+        }
     }
 
     setLoading(btn, true, 'Create Account');
 
     try {
-        const res  = await fetch(`${API_URL}/api/users/register`, {
+        const res = await fetch(`${API_URL}/api/users/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, phone, password })
+            // CRITICAL: Keys must match userController.js destructuring
+            body: JSON.stringify({ 
+                name, 
+                email, 
+                phone, 
+                password, 
+                role, 
+                license_number, // Matches backend
+                specialization 
+            })
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-            showError('signupError', data || 'Registration failed. Please try again.');
+            // Controller sends errors as { error: "msg" }, not { message: "msg" }
+            showError('signupError', data.error || 'Registration failed. Please try again.');
         } else {
-            // Save token and user info
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
-            showSuccess('signupSuccess', `Account created! Welcome, ${data.user.name}!`);
+            const welcomeMsg = data.user.role === 'Doctor' 
+                ? `Account created! Pending Admin approval.` 
+                : `Account created! Welcome, ${data.user.name}!`;
 
-        setTimeout(() => {
-    closeModal();
+            showSuccess('signupSuccess', welcomeMsg);
 
-    const user = JSON.parse(localStorage.getItem('user'));
-
-    if (user && user.role === "Doctor") {
-        window.location.href = "doctor.html";
-    } else {
-        window.location.href = "dashboard.html";
-    }
-}, 1800);
+            setTimeout(() => {
+                closeModal();
+                if (data.user.role === "Doctor") {
+                    window.location.href = "doctor.html";
+                } else {
+                    window.location.href = "dashboard.html";
+                }
+            }, 2000);
         }
     } catch (err) {
-        showError('signupError', 'Cannot connect to server. Make sure your backend is running.');
+        showError('signupError', 'Cannot connect to server. Check your backend.');
     } finally {
         setLoading(btn, false, 'Create Account');
     }

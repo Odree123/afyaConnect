@@ -27,7 +27,7 @@
                 <i class="fas fa-chart-pie"></i> Overview
             </a>
             <a href="#" class="nav-link" data-section="users">
-                <i class="fas fa-users"></i> Users
+                <i class="fas fa-users"></i> Patients
             </a>
             <a href="#" class="nav-link" data-section="doctors">
                 <i class="fas fa-user-md"></i> Doctors
@@ -51,7 +51,7 @@
                     <p class="admin-email" id="adminEmail">—</p>
                 </div>
             </div>
-            <a href="index.html" class="btn-logout" id="logoutBtn">
+            <a href="#" class="btn-logout" id="logoutBtn">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </a>
         </div>
@@ -131,18 +131,18 @@
 
         </section>
 
-        <!-- USERS SECTION -->
+        <!-- PATIENTS SECTION -->
         <section id="section-users" class="admin-section" style="display:none;">
             <div class="section-card">
                 <div class="card-header">
                     <h3>All Patients</h3>
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="userSearch" placeholder="Search users..." oninput="filterTable('usersTable', this.value)">
+                        <input type="text" id="userSearch" placeholder="Search patients..." onkeyup="filterTable('usersTable', this.value)">
                     </div>
                 </div>
                 <div id="usersTable" class="table-container">
-                    <div class="loading-state"><div class="spinner"></div><p>Loading...</p></div>
+                    <div class="loading-state"><div class="spinner"></div><p>Loading patients...</p></div>
                 </div>
             </div>
         </section>
@@ -154,11 +154,11 @@
                     <h3>All Doctors</h3>
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="doctorSearch" placeholder="Search doctors..." oninput="filterTable('doctorsTable', this.value)">
+                        <input type="text" id="doctorSearch" placeholder="Search doctors..." onkeyup="filterTable('doctorsTable', this.value)">
                     </div>
                 </div>
                 <div id="doctorsTable" class="table-container">
-                    <div class="loading-state"><div class="spinner"></div><p>Loading...</p></div>
+                    <div class="loading-state"><div class="spinner"></div><p>Loading doctors...</p></div>
                 </div>
             </div>
         </section>
@@ -176,11 +176,12 @@
                             <option value="paid">Paid</option>
                             <option value="in_progress">In Progress</option>
                             <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
                 </div>
                 <div id="consultationsTable" class="table-container">
-                    <div class="loading-state"><div class="spinner"></div><p>Loading...</p></div>
+                    <div class="loading-state"><div class="spinner"></div><p>Loading consultations...</p></div>
                 </div>
             </div>
         </section>
@@ -192,7 +193,7 @@
                     <h3>All Prescriptions</h3>
                 </div>
                 <div id="prescriptionsTable" class="table-container">
-                    <div class="loading-state"><div class="spinner"></div><p>Loading...</p></div>
+                    <div class="loading-state"><div class="spinner"></div><p>Loading prescriptions...</p></div>
                 </div>
             </div>
         </section>
@@ -204,7 +205,7 @@
                     <h3>Payment Records</h3>
                 </div>
                 <div id="paymentsTable" class="table-container">
-                    <div class="loading-state"><div class="spinner"></div><p>Loading...</p></div>
+                    <div class="loading-state"><div class="spinner"></div><p>Loading payments...</p></div>
                 </div>
             </div>
         </section>
@@ -213,8 +214,9 @@
 </div>
 
 <!-- CONFIRM MODAL -->
-<div class="modal-overlay" id="confirmModal">
+<div id="confirmModal" class="modal-overlay">
     <div class="modal-card small">
+        <button class="modal-close" onclick="closeConfirm()">✕</button>
         <h3 id="confirmTitle">Confirm Action</h3>
         <p id="confirmMessage">Are you sure?</p>
         <div class="modal-actions">
@@ -225,9 +227,9 @@
 </div>
 
 <!-- ROLE MODAL -->
-<div class="modal-overlay" id="roleModal">
+<div id="roleModal" class="modal-overlay">
     <div class="modal-card small">
-        <button class="modal-close" onclick="closeModal('roleModal')">✕</button>
+        <button class="modal-close" onclick="closeModalById('roleModal')">✕</button>
         <h3>Change User Role</h3>
         <p id="roleUserName" style="color: var(--muted); margin-bottom: 16px;"></p>
         <select id="roleSelect" class="role-select">
@@ -236,6 +238,25 @@
             <option value="Admin">Admin</option>
         </select>
         <button class="btn-save-role" id="saveRoleBtn">Save Role</button>
+    </div>
+</div>
+
+<!-- DOCTOR DETAILS MODAL -->
+<div id="doctorModal" class="modal-overlay">
+    <div class="modal-card">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <h2>Doctor Details</h2>
+        <div class="doctor-details">
+            <p><strong>Name:</strong> <span id="docName"></span></p>
+            <p><strong>Email:</strong> <span id="docEmail"></span></p>
+            <p><strong>Phone:</strong> <span id="docPhone"></span></p>
+            <p><strong>Specialization:</strong> <span id="docSpecialization"></span></p>
+            <p><strong>License Number:</strong> <span id="docLicense"></span></p>
+            <p><strong>Status:</strong> <span id="docStatus"></span></p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal()">Close</button>
+        </div>
     </div>
 </div>
 

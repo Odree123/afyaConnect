@@ -161,36 +161,78 @@
                 </form>
                 <p class="modal-toggle">New here? <a href="#" id="showSignup">Create an account</a></p>
             </div>
-
+        
             <!-- SIGNUP VIEW -->
-            <div id="signupView">
-                <h2>Create Account</h2>
-                <p class="subtitle">Join AfyaConnect today — it's free</p>
-                <div class="error-msg" id="signupError"></div>
-                <div class="success-msg" id="signupSuccess"></div>
-                <form id="signupForm">
-                    <div class="input-group">
-                        <label>Full Name</label>
-                        <input type="text" id="regName" placeholder="e.g. Audrey Pendo" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Email Address</label>
-                        <input type="email" id="regEmail" placeholder="name@example.com" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Phone Number (M-PESA)</label>
-                        <input type="tel" id="regPhone" placeholder="0712345678" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Password</label>
-                        <input type="password" id="regPass" placeholder="••••••••" required>
-                        <label for="regConfirmPass">Confirm Password</label>
-                        <input type="password" id="regConfirmPass" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="btn-modal">Create Account</button>
-                </form>
-                <p class="modal-toggle">Already have an account? <a href="#" id="showLogin">Login here</a></p>
+          <div id="signupView">
+    <h2>Create Account</h2>
+    <p class="subtitle">Join AfyaConnect today — it's free</p>
+    <div class="error-msg" id="signupError"></div>
+    <div class="success-msg" id="signupSuccess"></div>
+    
+    <form id="signupForm">
+        <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="regName" placeholder="e.g. Audrey Pendo" required>
+        </div>
+        <div class="input-group">
+            <label>Email Address</label>
+            <input type="email" id="regEmail" placeholder="name@example.com" required>
+        </div>
+        <div class="input-group">
+            <label>Phone Number (M-PESA)</label>
+            <input type="tel" id="regPhone" placeholder="0712345678" required>
+        </div>
+
+        <div class="input-group">
+            <label>Register as</label>
+            <select id="regRole" onchange="toggleDoctorFields()" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
+                <option value="Patient">Patient</option>
+                <option value="Doctor">Doctor / Medical Professional</option>
+            </select>
+        </div>
+
+        <div id="doctorFields" style="display:none;">
+            <div class="input-group">
+                <label>Medical License Number</label>
+                <input type="text" id="regLicense" placeholder="e.g. MED-12345-KE">
             </div>
+            <div class="input-group">
+                <label>Specialization</label>
+                <select id="regSpecialization" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
+                    <option value="">Select Specialization</option>
+                    <option value="General Practitioner">General Practitioner</option>
+                    <option value="Pediatrician">Pediatrician</option>
+                    <option value="Cardiologist">Cardiologist</option>
+                    <option value="Dermatologist">Dermatologist</option>
+                    <option value="Gynecologist">Gynecologist</option>
+                    <option value="Psychiatrist">Psychiatrist</option>
+                    <option value="Orthopedic Surgeon">Orthopedic Surgeon</option>
+                    <option value="ENT Specialist">ENT Specialist</option>
+                </select>
+            </div>
+            <p style="font-size:0.78rem; color:#6b7280; background:#fef9c3; padding:8px 12px; border-radius:8px; margin-top:-8px; margin-bottom:15px;">
+                ⚠️ Doctor accounts require admin approval before activation.
+            </p>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="regPass" placeholder="••••••••" required>
+        </div>
+        
+        <div class="input-group">
+            <label>Confirm Password</label>
+            <input type="password" id="regConfirmPass" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-modal">Create Account</button>
+    </form>
+    <p class="modal-toggle">Already have an account? <a href="#" id="showLogin">Login here</a></p>
+</div>
+
+        
+
+          
         </div>
     </div>
 
