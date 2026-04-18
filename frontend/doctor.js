@@ -1,4 +1,6 @@
-// This ensures it works locally AND on the live site
+// ===========================
+// API URL
+// ===========================
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000'
     : 'https://afyaconnect-mlly.onrender.com';
@@ -14,14 +16,32 @@ if (!token || !user) {
 }
 
 // ===========================
-// SET DOCTOR INFO
+// HELPERS
 // ===========================
 function getInitials(name) {
     return (name || 'DR').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-document.getElementById('doctorWelcome').textContent = user?.name || 'Dr. —';
-document.getElementById('doctorAvatar').textContent  = getInitials(user?.name);
+function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    if (diff < 60)   return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    return `${Math.floor(diff / 3600)}h ago`;
+}
+
+// ===========================
+// SET DOCTOR INFO
+// ===========================
+const initials = getInitials(user?.name);
+
+const doctorWelcomeEl    = document.getElementById('doctorWelcome');
+const doctorAvatarEl     = document.getElementById('doctorAvatar');
+const doctorAvatarMobEl  = document.getElementById('doctorAvatarMobile');
+
+if (doctorWelcomeEl)   doctorWelcomeEl.textContent   = user?.name || 'Dr. —';
+if (doctorAvatarEl)    doctorAvatarEl.textContent     = initials;
+if (doctorAvatarMobEl) doctorAvatarMobEl.textContent  = initials;
 
 if (user) {
     const nameInput  = document.getElementById('profileNameInput');
@@ -31,9 +51,36 @@ if (user) {
 
     if (nameInput)  nameInput.value      = user.name  || '';
     if (emailInput) emailInput.value     = user.email || '';
-    if (avatarEl)   avatarEl.textContent = getInitials(user.name);
+    if (avatarEl)   avatarEl.textContent = initials;
     if (nameEl)     nameEl.textContent   = user.name  || '';
 }
+
+// ===========================
+// SIDEBAR — HAMBURGER TOGGLE
+// FIX: null-safe, locks background scroll, Escape key
+// ===========================
+const hamburger = document.querySelector('.hamburger');
+const sidebar   = document.querySelector('.sidebar');
+const overlay   = document.querySelector('.sidebar-overlay');
+
+function openSidebar() {
+    sidebar?.classList.add('open');
+    overlay?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+    sidebar?.classList.remove('open');
+    overlay?.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+hamburger?.addEventListener('click', openSidebar);
+overlay?.addEventListener('click', closeSidebar);
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebar();
+});
 
 // ===========================
 // SIDEBAR NAVIGATION
@@ -57,8 +104,30 @@ document.querySelectorAll('.nav-link[data-section]').forEach(link => {
             if (section === 'dashboard') loadRequests();
             if (section === 'requests')  loadAllRequests();
         }
+
+        // FIX: auto-close sidebar after nav tap on mobile
+        if (window.innerWidth <= 480) closeSidebar();
     });
 });
+
+// ===========================
+// NOTIFICATION BADGE SYNC
+// FIX: keeps both desktop and mobile badges in sync
+// ===========================
+function setNotifBadge(count) {
+    const desktop = document.getElementById('notifBadge');
+    const mobile  = document.getElementById('notifBadgeMobile');
+
+    [desktop, mobile].forEach(badge => {
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent   = count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    });
+}
 
 // ===========================
 // LOAD REQUESTS (Dashboard tab)
@@ -69,8 +138,8 @@ async function loadRequests() {
 
     if (!list) return;
 
-    list.innerHTML          = '';
-    loadingEl.style.display = 'flex';
+    list.innerHTML = '';
+    if (loadingEl) loadingEl.style.display = 'flex';
 
     try {
         const res  = await fetch(`${API_URL}/api/consultations/doctor/${user.id}`, {
@@ -78,12 +147,12 @@ async function loadRequests() {
         });
 
         const data = await res.json();
-        loadingEl.style.display = 'none';
+        if (loadingEl) loadingEl.style.display = 'none';
 
         const pending = Array.isArray(data) ? data.filter(c => c.status === 'requested') : [];
-        const paid    = Array.isArray(data) ? data.filter(c => c.status === 'paid') : [];
+        const paid    = Array.isArray(data) ? data.filter(c => c.status === 'paid')      : [];
 
-        // ✅ Show paid consultations with Start Session button
+        // Show paid consultations with Start Session button
         const wrapper = document.getElementById('currentSessionWrapper');
         const card    = document.getElementById('currentSession');
 
@@ -105,20 +174,10 @@ async function loadRequests() {
             `).join('');
         }
 
-        // Update stats
+        // Update stats + badge
         const statPending = document.getElementById('statPending');
         if (statPending) statPending.textContent = pending.length;
-
-        // Update notification badge
-        const badge = document.getElementById('notifBadge');
-        if (badge) {
-            if (pending.length > 0) {
-                badge.textContent   = pending.length;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
+        setNotifBadge(pending.length);
 
         if (pending.length === 0) {
             list.innerHTML = `
@@ -149,8 +208,8 @@ async function loadRequests() {
         `).join('');
 
     } catch (err) {
-        loadingEl.style.display = 'none';
-        list.innerHTML = `<div class="empty-state"><p>Could not load requests.</p></div>`;
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (list) list.innerHTML = `<div class="empty-state"><p>Could not load requests.</p></div>`;
         console.error('Error loading requests:', err);
     }
 }
@@ -211,7 +270,6 @@ async function loadActiveSession() {
         const data = await res.json();
         if (!Array.isArray(data)) return;
 
-        // ✅ Check paid, accepted AND in_progress
         const active = data.find(c =>
             c.status === 'paid' ||
             c.status === 'accepted' ||
@@ -269,7 +327,7 @@ async function acceptRequest(consultationId) {
 // ===========================
 async function startSession(consultationId) {
     try {
-        const res = await fetch(`${API_URL}/api/consultations/start/${consultationId}`, {
+        const res  = await fetch(`${API_URL}/api/consultations/start/${consultationId}`, {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -277,7 +335,6 @@ async function startSession(consultationId) {
         const data = await res.json();
 
         if (res.ok) {
-            // ✅ Notify patient via socket
             if (typeof io !== 'undefined') {
                 const sock = io(API_URL);
                 sock.on('connect', () => {
@@ -329,7 +386,7 @@ function loadCurrentSession(consultation) {
         <div class="session-info">
             <h4>Consulting with <strong>${consultation.patient_name || `Patient #${consultation.patient_id}`}</strong></h4>
             <p class="session-status">
-                <span class="dot red-dot"></span> Status: ${consultation.status}
+                <span class="dot red-dot"></span> Status: ${consultation.status.replace('_', ' ')}
             </p>
         </div>
         <div class="session-actions">
@@ -367,7 +424,8 @@ async function endSession(consultationId) {
         });
 
         if (res.ok) {
-            document.getElementById('currentSessionWrapper').style.display = 'none';
+            const wrapper = document.getElementById('currentSessionWrapper');
+            if (wrapper) wrapper.style.display = 'none';
             activeConsultationId = null;
 
             const sessionsEl = document.getElementById('statSessions');
@@ -389,18 +447,22 @@ let prescConsultationId = null;
 
 function openPrescriptionModal(consultationId) {
     prescConsultationId = consultationId;
-    document.getElementById('prescConsultId').textContent = `#${consultationId}`;
 
-    const notes = document.getElementById('prescNotes');
-    if (notes) notes.value = '';
+    const consultIdEl = document.getElementById('prescConsultId');
+    const notes       = document.getElementById('prescNotes');
+    const errEl       = document.getElementById('prescError');
+    const sucEl       = document.getElementById('prescSuccess');
 
-    document.getElementById('prescError').style.display   = 'none';
-    document.getElementById('prescSuccess').style.display = 'none';
-    document.getElementById('prescriptionModal').classList.add('active');
+    if (consultIdEl) consultIdEl.textContent = `#${consultationId}`;
+    if (notes)       notes.value             = '';
+    if (errEl)       errEl.style.display     = 'none';
+    if (sucEl)       sucEl.style.display     = 'none';
+
+    document.getElementById('prescriptionModal')?.classList.add('active');
 }
 
 document.getElementById('closePrescription')?.addEventListener('click', () => {
-    document.getElementById('prescriptionModal').classList.remove('active');
+    document.getElementById('prescriptionModal')?.classList.remove('active');
 });
 
 document.getElementById('prescriptionModal')?.addEventListener('click', (e) => {
@@ -410,17 +472,16 @@ document.getElementById('prescriptionModal')?.addEventListener('click', (e) => {
 });
 
 document.getElementById('submitPrescription')?.addEventListener('click', async () => {
-    const notes     = document.getElementById('prescNotes').value.trim();
+    const notes     = document.getElementById('prescNotes')?.value.trim();
     const btn       = document.getElementById('submitPrescription');
     const errorEl   = document.getElementById('prescError');
     const successEl = document.getElementById('prescSuccess');
 
-    errorEl.style.display   = 'none';
-    successEl.style.display = 'none';
+    if (errorEl)   errorEl.style.display   = 'none';
+    if (successEl) successEl.style.display = 'none';
 
     if (!notes) {
-        errorEl.textContent   = 'Please enter prescription notes.';
-        errorEl.style.display = 'block';
+        if (errorEl) { errorEl.textContent = 'Please enter prescription notes.'; errorEl.style.display = 'block'; }
         return;
     }
 
@@ -440,22 +501,19 @@ document.getElementById('submitPrescription')?.addEventListener('click', async (
         const data = await res.json();
 
         if (!res.ok) {
-            errorEl.textContent   = data || 'Could not submit prescription.';
-            errorEl.style.display = 'block';
+            if (errorEl) { errorEl.textContent = data || 'Could not submit prescription.'; errorEl.style.display = 'block'; }
         } else {
-            successEl.textContent   = 'Prescription submitted successfully!';
-            successEl.style.display = 'block';
+            if (successEl) { successEl.textContent = 'Prescription submitted successfully!'; successEl.style.display = 'block'; }
 
             const prescEl = document.getElementById('statPrescriptions');
             if (prescEl) prescEl.textContent = parseInt(prescEl.textContent || 0) + 1;
 
             setTimeout(() => {
-                document.getElementById('prescriptionModal').classList.remove('active');
+                document.getElementById('prescriptionModal')?.classList.remove('active');
             }, 2000);
         }
     } catch (err) {
-        errorEl.textContent   = 'Server error. Please try again.';
-        errorEl.style.display = 'block';
+        if (errorEl) { errorEl.textContent = 'Server error. Please try again.'; errorEl.style.display = 'block'; }
     } finally {
         btn.disabled  = false;
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Prescription';
@@ -473,7 +531,6 @@ if (typeof io !== 'undefined') {
         notifSocket.emit('join_user_room', user.id);
     });
 
-    // ✅ Patient paid — show Start Session button
     notifSocket.on('patient_paid', (data) => {
         console.log('💳 patient_paid received:', data);
         showNotification(
@@ -491,7 +548,7 @@ if (typeof io !== 'undefined') {
 }
 
 // ===========================
-// NOTIFICATION HELPERS
+// NOTIFICATION TOAST
 // ===========================
 let notifCallback = null;
 let notifTimeout  = null;
@@ -513,7 +570,7 @@ function showNotification(title, message, onClick) {
             <div style="display:flex; align-items:flex-start; gap:12px;">
                 <span style="font-size:1.5rem;">🔔</span>
                 <div>
-                    <p id="notifTitle" style="font-weight:700; margin:0 0 4px; font-size:0.95rem;"></p>
+                    <p id="notifTitle"   style="font-weight:700; margin:0 0 4px; font-size:0.95rem;"></p>
                     <p id="notifMessage" style="margin:0; font-size:0.85rem; color:#6b7280;"></p>
                 </div>
                 <button onclick="closeNotif()" style="background:none; border:none; cursor:pointer; color:#9ca3af; font-size:1.1rem; margin-left:auto;">✕</button>
@@ -522,10 +579,12 @@ function showNotification(title, message, onClick) {
         document.body.appendChild(toast);
     }
 
-    document.getElementById('notifTitle').textContent   = title;
-    document.getElementById('notifMessage').textContent = message;
+    const titleEl = document.getElementById('notifTitle');
+    const msgEl   = document.getElementById('notifMessage');
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl)   msgEl.textContent   = message;
 
-    notifCallback      = onClick;
+    notifCallback       = onClick;
     toast.style.display = 'block';
 
     clearTimeout(notifTimeout);
@@ -549,53 +608,39 @@ function closeNotif() {
 const statusToggle = document.getElementById('statusToggle');
 const statusText   = document.getElementById('statusText');
 
-if (statusToggle) {
-    statusToggle.addEventListener('change', () => {
-        statusText.textContent = statusToggle.checked ? 'Online' : 'Offline';
-        statusText.className   = statusToggle.checked ? 'status-text online-text' : 'status-text offline-text';
-    });
-}
+statusToggle?.addEventListener('change', () => {
+    if (!statusText) return;
+    statusText.textContent = statusToggle.checked ? 'Online' : 'Offline';
+    statusText.className   = statusToggle.checked ? 'status-text online-text' : 'status-text offline-text';
+});
 
 // ===========================
 // PROFILE FORM
 // ===========================
-const profileForm = document.getElementById('profileForm');
-if (profileForm) {
-    profileForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const successEl = document.getElementById('profileSuccess');
-        if (successEl) {
-            successEl.textContent   = 'Profile updated successfully!';
-            successEl.style.display = 'block';
-            setTimeout(() => successEl.style.display = 'none', 3000);
-        }
-    });
-}
+document.getElementById('profileForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const successEl = document.getElementById('profileSuccess');
+    if (successEl) {
+        successEl.textContent   = 'Profile updated successfully!';
+        successEl.style.display = 'block';
+        setTimeout(() => { successEl.style.display = 'none'; }, 3000);
+    }
+});
 
 // ===========================
 // LOGOUT
 // ===========================
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
+document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+    e.preventDefault();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = 'index.html';
 });
 
 // ===========================
-// HELPERS
-// ===========================
-function timeAgo(dateStr) {
-    if (!dateStr) return '';
-    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
-    if (diff < 60)   return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    return `${Math.floor(diff / 3600)}h ago`;
-}
-
-// ===========================
 // INIT
 // ===========================
 loadRequests();
 loadActiveSession();
-setInterval(loadRequests, 10000);
+setInterval(loadRequests,      10000);
 setInterval(loadActiveSession, 15000);

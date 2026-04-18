@@ -12,6 +12,9 @@
 
 <div class="dashboard-wrapper">
 
+    <!-- SIDEBAR OVERLAY (mobile backdrop — tap to close) -->
+    <div class="sidebar-overlay"></div>
+
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="logo">afya<span>Connect</span></div>
@@ -48,9 +51,30 @@
     <!-- MAIN CONTENT -->
     <main class="main-content">
 
-        <!-- TOP BAR -->
+        <!-- =====================
+             MOBILE TOP ROW
+             Visible only at ≤480px.
+             Hamburger (left) | Notif + Avatar (right)
+        ===================== -->
+        <div class="top-bar-mobile-row">
+            <button class="hamburger" aria-label="Open navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div class="notif-btn" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-badge" id="notifBadgeMobile" style="display:none;">0</span>
+                </div>
+                <div class="avatar-circle" id="doctorAvatarMobile">DR</div>
+            </div>
+        </div>
+
+        <!-- =====================
+             DESKTOP TOP BAR
+             Hidden at ≤480px.
+        ===================== -->
         <header class="top-bar">
-            <div>
+            <div class="top-bar-left">
                 <p class="welcome-sub">Good day,</p>
                 <h2 id="doctorWelcome">Dr. —</h2>
             </div>
@@ -63,7 +87,9 @@
             </div>
         </header>
 
-        <!-- DASHBOARD SECTION -->
+        <!-- =====================
+             DASHBOARD SECTION
+        ===================== -->
         <section id="section-dashboard">
 
             <!-- STATS ROW -->
@@ -116,7 +142,9 @@
 
         </section>
 
-        <!-- PATIENT REQUESTS SECTION -->
+        <!-- =====================
+             PATIENT REQUESTS SECTION
+        ===================== -->
         <section id="section-requests" style="display:none;">
             <div class="section-card">
                 <div class="section-card-header">
@@ -128,7 +156,9 @@
             </div>
         </section>
 
-        <!-- PROFILE SECTION -->
+        <!-- =====================
+             PROFILE SECTION
+        ===================== -->
         <section id="section-profile" style="display:none;">
             <div class="section-card">
                 <div class="section-card-header">
@@ -194,12 +224,12 @@
         <h2>Write Prescription</h2>
         <p class="modal-subtitle">For consultation <strong id="prescConsultId">—</strong></p>
 
-        <div class="input-group">
+        <div class="input-group" style="text-align:left;">
             <label>Prescription Notes / Medication</label>
             <textarea id="prescNotes" rows="5" placeholder="e.g. Amoxicillin 500mg — 3 times daily for 7 days. Rest and drink plenty of fluids."></textarea>
         </div>
 
-        <div class="error-msg" id="prescError"></div>
+        <div class="error-msg"   id="prescError"></div>
         <div class="success-msg" id="prescSuccess"></div>
 
         <button class="btn-modal" id="submitPrescription">
@@ -208,7 +238,7 @@
     </div>
 </div>
 
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="doctor.js"></script>
-<script src="mobile.js"></script>
 </body>
 </html>
