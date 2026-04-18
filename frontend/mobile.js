@@ -117,124 +117,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===========================
-    // INJECT MOBILE BOTTOM NAV
-    // (for dashboard and doctor pages)
+    // MOBILE BOTTOM NAV - REMOVED
     // ===========================
-    const isDashboard = window.location.pathname.includes('dashboard');
-    const isDoctorPage = window.location.pathname.includes('doctor');
-    const isAdminPage = window.location.pathname.includes('admin');
-    const isConsultation = window.location.pathname.includes('consultation');
-
-    if (isDashboard) {
-        const bottomNav = document.createElement('nav');
-        bottomNav.className = 'mobile-bottom-nav';
-        bottomNav.innerHTML = `
-            <a href="#" onclick="switchToSection('dashboard')" class="active" id="bnDashboard">
-                <i class="fas fa-th-large"></i>
-                <span>Home</span>
-            </a>
-            <a href="#" onclick="switchToSection('requests')" id="bnRequests">
-                <i class="fas fa-history"></i>
-                <span>Requests</span>
-            </a>
-            <a href="#" onclick="switchToSection('consultations')" id="bnConsult">
-                <i class="fas fa-comment-medical"></i>
-                <span>Sessions</span>
-            </a>
-            <a href="#" onclick="switchToSection('prescriptions')" id="bnRx">
-                <i class="fas fa-file-medical"></i>
-                <span>Rx</span>
-            </a>
-            <a href="#" onclick="switchToSection('profile')" id="bnProfile">
-                <i class="fas fa-user-circle"></i>
-                <span>Profile</span>
-            </a>
-        `;
-        document.body.appendChild(bottomNav);
-    }
-
-    if (isDoctorPage) {
-        const bottomNav = document.createElement('nav');
-        bottomNav.className = 'mobile-bottom-nav';
-        bottomNav.innerHTML = `
-            <a href="#" onclick="switchDoctorSection('dashboard')" class="active">
-                <i class="fas fa-th-large"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="#" onclick="switchDoctorSection('requests')">
-                <i class="fas fa-user-injured"></i>
-                <span>Requests</span>
-            </a>
-            <a href="#" onclick="switchDoctorSection('profile')">
-                <i class="fas fa-user-circle"></i>
-                <span>Profile</span>
-            </a>
-            <a href="index.html">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
-        `;
-        document.body.appendChild(bottomNav);
-    }
-
-    if (isAdminPage) {
-        const bottomNav = document.createElement('nav');
-        bottomNav.className = 'mobile-bottom-nav';
-        bottomNav.innerHTML = `
-            <a href="#" onclick="switchSection('overview')" class="active">
-                <i class="fas fa-chart-pie"></i>
-                <span>Overview</span>
-            </a>
-            <a href="#" onclick="switchSection('users')">
-                <i class="fas fa-users"></i>
-                <span>Users</span>
-            </a>
-            <a href="#" onclick="switchSection('consultations')">
-                <i class="fas fa-stethoscope"></i>
-                <span>Consults</span>
-            </a>
-            <a href="#" onclick="switchSection('payments')">
-                <i class="fas fa-money-bill-wave"></i>
-                <span>Payments</span>
-            </a>
-        `;
-        document.body.appendChild(bottomNav);
-    }
+    // Bottom navigation (Home, Requests, Sessions, Rx, Profile) has been removed
+    // as requested
 
     // ===========================
-    // HELPER: Switch sections with
-    // bottom nav active state
+    // HELPER FUNCTIONS - REMOVED
+    // (no longer needed without bottom nav)
     // ===========================
-    window.switchToSection = (section) => {
-        // Update active state on bottom nav
-        document.querySelectorAll('.mobile-bottom-nav a').forEach(a => a.classList.remove('active'));
-        const map = {
-            dashboard: 'bnDashboard',
-            requests: 'bnRequests',
-            consultations: 'bnConsult',
-            prescriptions: 'bnRx',
-            profile: 'bnProfile'
-        };
-        const activeEl = document.getElementById(map[section]);
-        if (activeEl) activeEl.classList.add('active');
-
-        // Trigger the existing section switch
-        const link = document.querySelector(`.nav-link[data-section="${section}"]`);
-        if (link) link.click();
-    };
-
-    window.switchDoctorSection = (section) => {
-        document.querySelectorAll('.mobile-bottom-nav a').forEach(a => a.classList.remove('active'));
-        // Find the clicked link and add active class
-        const clickedLink = Array.from(document.querySelectorAll('.mobile-bottom-nav a')).find(
-            a => a.textContent.toLowerCase().includes(section) || 
-                 a.getAttribute('onclick')?.includes(section)
-        );
-        if (clickedLink) clickedLink.classList.add('active');
-        
-        const link = document.querySelector(`.nav-link[data-section="${section}"]`);
-        if (link) link.click();
-    };
+    // switchToSection and switchDoctorSection functions removed
 
     // ===========================
     // MAKE TABLES SWIPEABLE
