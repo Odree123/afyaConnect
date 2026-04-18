@@ -1,4 +1,6 @@
-// This ensures it works locally AND on the live site
+// ===========================
+// API URL
+// ===========================
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000'
     : 'https://afyaconnect-mlly.onrender.com';
@@ -14,18 +16,48 @@ if (!token || !user) {
 }
 
 // ===========================
-// SET USER INFO IN TOP BAR
+// HELPERS
 // ===========================
-if (document.getElementById('userName')) {
-    document.getElementById('userName').textContent = user?.name || 'User';
-}
-if (document.getElementById('userAvatar')) {
-    document.getElementById('userAvatar').textContent = getInitials(user?.name || 'U');
+function getInitials(name) {
+    return (name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-function getInitials(name) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+// ===========================
+// SET USER INFO IN TOP BAR
+// ===========================
+const userNameEl   = document.getElementById('userName');
+const userAvatarEl = document.getElementById('userAvatar');
+if (userNameEl)   userNameEl.textContent   = user?.name || 'User';
+if (userAvatarEl) userAvatarEl.textContent = getInitials(user?.name || 'U');
+
+// ===========================
+// SIDEBAR — HAMBURGER TOGGLE
+// FIX: wrapped in null checks so a missing element
+//      won't crash the entire script
+// ===========================
+const hamburger = document.querySelector('.hamburger');
+const sidebar   = document.querySelector('.sidebar');
+const overlay   = document.querySelector('.sidebar-overlay');
+
+function openSidebar() {
+    sidebar?.classList.add('open');
+    overlay?.classList.add('active');
+    document.body.style.overflow = 'hidden'; // prevent background scroll
 }
+
+function closeSidebar() {
+    sidebar?.classList.remove('open');
+    overlay?.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+hamburger?.addEventListener('click', openSidebar);
+overlay?.addEventListener('click', closeSidebar);
+
+// Close sidebar on Escape key (accessibility)
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebar();
+});
 
 // ===========================
 // SIDEBAR NAVIGATION
@@ -35,12 +67,13 @@ document.querySelectorAll('.nav-link[data-section]').forEach(link => {
         e.preventDefault();
         const section = link.dataset.section;
 
+        // Update active link
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
 
+        // Show the right section
         document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
         const target = document.getElementById(`section-${section}`);
-
         if (target) {
             target.style.display = 'block';
             if (section === 'dashboard')     loadDoctors();
@@ -49,6 +82,9 @@ document.querySelectorAll('.nav-link[data-section]').forEach(link => {
             if (section === 'prescriptions') loadPrescriptions();
             if (section === 'consultations') loadConsultations();
         }
+
+        // FIX: auto-close sidebar on mobile after nav tap
+        if (window.innerWidth <= 480) closeSidebar();
     });
 });
 
@@ -63,7 +99,7 @@ function toggleNotifPanel() {
 }
 
 // ===========================
-// LOAD DOCTORS FROM BACKEND
+// LOAD DOCTORS
 // ===========================
 async function loadDoctors() {
     const grid         = document.getElementById('doctorGrid');
@@ -73,10 +109,10 @@ async function loadDoctors() {
 
     if (!grid) return;
 
-    grid.innerHTML             = '';
-    loadingState.style.display = 'flex';
-    errorState.style.display   = 'none';
-    emptyState.style.display   = 'none';
+    grid.innerHTML = '';
+    if (loadingState) loadingState.style.display = 'flex';
+    if (errorState)   errorState.style.display   = 'none';
+    if (emptyState)   emptyState.style.display    = 'none';
 
     try {
         const res = await fetch(`${API_URL}/api/doctors`, {
@@ -85,16 +121,16 @@ async function loadDoctors() {
 
         if (!res.ok) throw new Error('Failed to fetch doctors');
 
-        const doctors = await res.json();
-        loadingState.style.display = 'none';
+        const doctors  = await res.json();
+        if (loadingState) loadingState.style.display = 'none';
 
         const available = Array.isArray(doctors) ? doctors : [];
-        if (document.getElementById('onlineCount')) {
-            document.getElementById('onlineCount').textContent = available.length;
-        }
+
+        const onlineCount = document.getElementById('onlineCount');
+        if (onlineCount) onlineCount.textContent = available.length;
 
         if (available.length === 0) {
-            emptyState.style.display = 'block';
+            if (emptyState) emptyState.style.display = 'block';
             return;
         }
 
@@ -117,8 +153,8 @@ async function loadDoctors() {
 
     } catch (err) {
         console.error('Error loading doctors:', err);
-        loadingState.style.display = 'none';
-        errorState.style.display   = 'block';
+        if (loadingState) loadingState.style.display = 'none';
+        if (errorState)   errorState.style.display   = 'block';
     }
 }
 
@@ -150,10 +186,11 @@ async function sendRequest(doctorId, doctorName) {
         }
 
         currentConsultId = data.id;
-        document.getElementById('requestDoctorName').textContent = doctorName;
+        const reqDoctorName = document.getElementById('requestDoctorName');
+        if (reqDoctorName) reqDoctorName.textContent = doctorName;
         openModal('requestModal');
 
-        if (btn) { btn.textContent = 'Request Sent ✓'; }
+        if (btn) btn.textContent = 'Request Sent ✓';
 
     } catch (err) {
         console.error(err);
@@ -166,7 +203,7 @@ async function sendRequest(doctorId, doctorName) {
 // PAYMENT LOGIC
 // ===========================
 document.getElementById('payBtn')?.addEventListener('click', async () => {
-    const phone = document.getElementById('mpesaNumber').value.trim();
+    const phone = document.getElementById('mpesaNumber')?.value.trim();
     const btn   = document.getElementById('payBtn');
 
     clearPaymentMessages();
@@ -191,11 +228,7 @@ document.getElementById('payBtn')?.addEventListener('click', async () => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({
-                phone,
-                consultation_id: currentConsultId,
-                amount: 1
-            })
+            body: JSON.stringify({ phone, consultation_id: currentConsultId, amount: 1 })
         });
 
         const data = await res.json();
@@ -208,19 +241,16 @@ document.getElementById('payBtn')?.addEventListener('click', async () => {
             let attempts = 0;
             const poll = setInterval(async () => {
                 attempts++;
-
                 if (attempts > 12) {
                     clearInterval(poll);
                     showPaymentError('Payment timeout. Please try again.');
                     return;
                 }
-
                 try {
                     const checkRes = await fetch(
                         `${API_URL}/api/mpesa/status/${currentConsultId}`,
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
-
                     if (checkRes.ok) {
                         const statusData = await checkRes.json();
                         if (statusData.status === 'paid') {
@@ -255,10 +285,9 @@ async function loadRequests() {
     list.innerHTML = '<p>Loading requests...</p>';
 
     try {
-        const res = await fetch(`${API_URL}/api/consultations/patient/${user.id}`, {
+        const res  = await fetch(`${API_URL}/api/consultations/patient/${user.id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-
         const data = await res.json();
 
         if (!res.ok || !Array.isArray(data) || data.length === 0) {
@@ -266,35 +295,41 @@ async function loadRequests() {
             return;
         }
 
+        // FIX: use CSS classes from dashboard.css instead of inline style objects
+        const statusClass = (s) => ({
+            requested:   'pending',
+            accepted:    'accepted',
+            paid:        'paid',
+            in_progress: 'in_progress',
+            completed:   'completed',
+        }[s] || '');
+
+        const statusLabel = (s) => s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
         list.innerHTML = data.map(req => `
-            <div class="request-card" style="border-bottom: 1px solid #eee; padding: 15px;">
+            <div class="request-card">
                 <div class="request-info">
                     <h4>Consultation #${req.id}</h4>
                     <p><strong>Doctor:</strong> ${req.doctor_name || 'Unknown Doctor'}</p>
-                    <p>Status: <span style="
-                        display: inline-block;
-                        padding: 3px 10px;
-                        border-radius: 20px;
-                        font-size: 0.8rem;
-                        font-weight: 600;
-                        background: ${req.status === 'requested' ? '#fff3cd' : req.status === 'accepted' ? '#d4edda' : req.status === 'paid' ? '#cce5ff' : req.status === 'in_progress' ? '#e2d9f3' : '#d6d8db'};
-                        color: ${req.status === 'requested' ? '#856404' : req.status === 'accepted' ? '#155724' : req.status === 'paid' ? '#004085' : req.status === 'in_progress' ? '#6f42c1' : '#383d41'};
-                    ">${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span></p>
+                    <p>
+                        <span class="request-status ${statusClass(req.status)}">
+                            ${statusLabel(req.status)}
+                        </span>
+                    </p>
                     <small>${new Date(req.created_at).toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}</small>
                 </div>
 
                 ${req.status === 'accepted' ? `
-                <button onclick="openPaymentModal(${req.id}, '${req.doctor_name}')"
-                    style="margin-top:10px; background:#2e7d32; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer;">
-                    💳 Pay Now
-                </button>` : ''}
+                    <button class="btn-consult" onclick="openPaymentModal(${req.id}, '${req.doctor_name}')">
+                        💳 Pay Now
+                    </button>` : ''}
 
                 ${req.status === 'in_progress' ? `
-                <a href="consult.html?id=${req.id}" style="display:inline-block; margin-top:10px;">
-                    <button style="background:#7c3aed; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer;">
-                        💬 Join Room
-                    </button>
-                </a>` : ''}
+                    <a href="consult.html?id=${req.id}">
+                        <button class="btn-consult" style="background: #7c3aed;">
+                            💬 Join Room
+                        </button>
+                    </a>` : ''}
             </div>
         `).join('');
 
@@ -313,10 +348,9 @@ async function loadConsultations() {
     container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading...</p></div>';
 
     try {
-        const res = await fetch(`${API_URL}/api/consultations/patient/${user.id}`, {
+        const res    = await fetch(`${API_URL}/api/consultations/patient/${user.id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-
         const data   = await res.json();
         const active = Array.isArray(data)
             ? data.filter(c => ['paid', 'in_progress', 'completed'].includes(c.status))
@@ -332,30 +366,35 @@ async function loadConsultations() {
             return;
         }
 
-        // ✅ container.innerHTML is INSIDE the function
+        // FIX: use CSS classes instead of inline status colours
+        const statusClass = (s) => ({
+            paid:        'paid',
+            in_progress: 'in_progress',
+            completed:   'completed',
+        }[s] || '');
+
         container.innerHTML = active.map(c => `
-            <div class="request-card" style="padding: 15px; border-bottom: 1px solid #eee;">
-                <h4>Consultation #${c.id}</h4>
-                <p><strong>Doctor:</strong> ${c.doctor_name || 'Unknown'}</p>
-                <p>Status: <span style="
-                    display: inline-block; padding: 3px 10px; border-radius: 20px;
-                    font-size: 0.8rem; font-weight: 600;
-                    background: ${c.status === 'paid' ? '#cce5ff' : c.status === 'in_progress' ? '#e2d9f3' : '#d6d8db'};
-                    color: ${c.status === 'paid' ? '#004085' : c.status === 'in_progress' ? '#6f42c1' : '#383d41'};
-                ">${c.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span></p>
-                <small>${new Date(c.created_at).toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}</small>
-                <div style="margin-top: 10px;">
+            <div class="request-card">
+                <div class="request-info">
+                    <h4>Consultation #${c.id}</h4>
+                    <p><strong>Doctor:</strong> ${c.doctor_name || 'Unknown'}</p>
+                    <p>
+                        <span class="request-status ${statusClass(c.status)}">
+                            ${c.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
+                    </p>
+                    <small>${new Date(c.created_at).toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}</small>
+                </div>
+                <div>
                     ${c.status === 'paid' ? `
-                        <span style="color:#004085; font-size:0.85rem;">⏳ Waiting for doctor to start session</span>
+                        <p style="color: #004085; font-size: 0.85rem;">⏳ Waiting for doctor to start session</p>
                     ` : ''}
                     ${c.status === 'in_progress' ? `
                         <a href="consult.html?id=${c.id}">
-                            <button style="background:#2e7d32; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer;">
-                                💬 Join Room
-                            </button>
+                            <button class="btn-consult">💬 Join Room</button>
                         </a>` : ''}
                     ${c.status === 'completed' ? `
-                        <span style="color:#888; font-size:0.85rem;">✅ Session completed</span>` : ''}
+                        <p style="color: var(--muted); font-size: 0.85rem;">✅ Session completed</p>` : ''}
                 </div>
             </div>
         `).join('');
@@ -375,10 +414,9 @@ async function loadPrescriptions() {
     container.innerHTML = '<div class="loading-state"><p>Fetching your prescriptions...</p></div>';
 
     try {
-        const response = await fetch(`${API_URL}/api/prescriptions/patient/${user.id}`, {
+        const response      = await fetch(`${API_URL}/api/prescriptions/patient/${user.id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-
         const data          = await response.json();
         const prescriptions = Array.isArray(data) ? data : (data.prescriptions || []);
 
@@ -393,13 +431,13 @@ async function loadPrescriptions() {
 
         container.innerHTML = prescriptions.map(p => `
             <div style="background: white; border: 1.5px solid #e5e7eb; padding: 20px; border-radius: 15px; margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
                     <div>
                         <h4 style="color: #059669; margin: 0;">${p.medication_name}</h4>
                         <span style="font-size: 0.8rem; background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 5px; display: inline-block; margin-top: 5px;">${p.dosage}</span>
                     </div>
                     <button onclick='printPrescription(${JSON.stringify(p)})'
-                        style="background: #f3f4f6; color: #374151; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">
+                        style="background: #f3f4f6; color: #374151; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; white-space: nowrap;">
                         <i class="fas fa-print"></i> Print
                     </button>
                 </div>
@@ -471,10 +509,8 @@ function showPaymentSuccess(msg) {
     if (el) { el.textContent = msg; el.style.display = 'block'; }
 }
 function clearPaymentMessages() {
-    const errEl = document.getElementById('paymentError');
-    const sucEl = document.getElementById('paymentSuccess');
-    if (errEl) errEl.style.display = 'none';
-    if (sucEl) sucEl.style.display = 'none';
+    document.getElementById('paymentError')?.style.setProperty('display', 'none');
+    document.getElementById('paymentSuccess')?.style.setProperty('display', 'none');
 }
 
 // ===========================
@@ -482,13 +518,16 @@ function clearPaymentMessages() {
 // ===========================
 let notifCallback = null;
 let notifTimeout  = null;
+let notifCount    = 0;
 
 function showNotification(title, message, onClick) {
     const toast = document.getElementById('notifToast');
     if (!toast) return;
 
-    document.getElementById('notifTitle').textContent   = title;
-    document.getElementById('notifMessage').textContent = message;
+    const titleEl = document.getElementById('notifTitle');
+    const msgEl   = document.getElementById('notifMessage');
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl)   msgEl.textContent   = message;
 
     notifCallback       = onClick;
     toast.style.display = 'block';
@@ -510,11 +549,10 @@ function closeNotif() {
 
 function updateNotifBadge() {
     const badge = document.getElementById('notifBadge');
-    if (badge) {
-        const count         = parseInt(badge.textContent || '0') + 1;
-        badge.textContent   = count;
-        badge.style.display = 'flex';
-    }
+    if (!badge) return;
+    notifCount++;
+    badge.textContent   = notifCount;
+    badge.style.display = 'flex';
 }
 
 // ===========================
@@ -528,7 +566,6 @@ if (typeof io !== 'undefined' && user?.id) {
         notifSocket.emit('join_user_room', user.id);
     });
 
-    // ✅ Doctor accepted — prompt patient to pay
     notifSocket.on('consultation_accepted', (data) => {
         console.log('🔥 consultation_accepted:', data);
         currentConsultId = data.consultation_id;
@@ -537,7 +574,8 @@ if (typeof io !== 'undefined' && user?.id) {
             '✅ Doctor Accepted!',
             'Your request was accepted. Tap to pay now.',
             () => {
-                document.getElementById('doctorNameLabel').textContent = 'Your Doctor';
+                const label = document.getElementById('doctorNameLabel');
+                if (label) label.textContent = 'Your Doctor';
                 openModal('paymentModal');
             }
         );
@@ -545,7 +583,6 @@ if (typeof io !== 'undefined' && user?.id) {
         loadRequests();
     });
 
-    // ✅ Doctor started session — redirect patient
     notifSocket.on('consultation_started', (data) => {
         console.log('🔥 consultation_started:', data);
         showNotification(
