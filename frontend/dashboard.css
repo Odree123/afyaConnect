@@ -850,18 +850,3 @@ p {
         font-size: 0.62rem;
     }
 }
-
-/* ===========================
-   HAMBURGER TOGGLE SCRIPT HELPER
-   Add this JS snippet to your HTML:
-
-   const hamburger = document.querySelector('.hamburger');
-   const sidebar   = document.querySelector('.sidebar');
-   const overlay   = document.querySelector('.sidebar-overlay');
-
-   function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('active'); }
-   function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
-
-   hamburger.addEventListener('click', openSidebar);
-   overlay.addEventListener('click', closeSidebar);
-=========================== */

@@ -1,8 +1,5 @@
 /* ===========================
    AFYACONNECT MOBILE STYLES
-   Add this to all CSS files
-   or create as mobile.css and
-   link in all HTML files
 =========================== */
 
 /* ===========================
@@ -37,25 +34,32 @@
 .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 /* ===========================
-   SIDEBAR STYLES (Required for hamburger menu)
+   SIDEBAR
+   FIX: removed conflicting left: -280px.
+   Now uses transform + visibility only,
+   so the sidebar is fully invisible when
+   closed and the logo never bleeds through.
 =========================== */
 .sidebar {
     position: fixed;
     top: 0;
-    left: -280px;
+    left: 0;                          /* always anchored to left edge */
     width: 280px;
     height: 100%;
     background: white;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.12);
     z-index: 1000;
-    transition: left 0.3s ease;
+    transform: translateX(-100%);     /* hidden off-screen by default */
+    visibility: hidden;               /* fully invisible when closed */
+    transition: transform 0.3s ease, visibility 0.3s ease;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
 }
 
 .sidebar.open {
-    left: 0;
+    transform: translateX(0);         /* slides in */
+    visibility: visible;
 }
 
 .sidebar-header {
@@ -91,6 +95,10 @@
     font-family: 'Inter', sans-serif;
     font-weight: 500;
     transition: all 0.2s;
+    cursor: pointer;
+    pointer-events: auto;
+    position: relative;
+    z-index: 10001;
 }
 
 .nav-link i {
@@ -118,7 +126,9 @@
     font-size: 0.7rem;
 }
 
-/* Sidebar overlay */
+/* ===========================
+   SIDEBAR OVERLAY (backdrop)
+=========================== */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -162,15 +172,44 @@
 }
 
 /* ===========================
+   MOBILE BOTTOM NAV
+=========================== */
+.mobile-bottom-nav {
+    display: none;
+}
+
+.mobile-bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    color: #9ca3af;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 8px;
+    transition: color 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.mobile-bottom-nav a.active,
+.mobile-bottom-nav a:hover {
+    color: #059669;
+}
+
+.mobile-bottom-nav i {
+    font-size: 1.1rem;
+}
+
+/* ===========================
    TABLET (max-width: 1024px)
 =========================== */
 @media (max-width: 1024px) {
-    /* Admin stats grid */
     .stats-grid {
         grid-template-columns: repeat(3, 1fr) !important;
     }
 
-    /* Dashboard doctor grid */
     .doctor-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
     }
@@ -181,46 +220,36 @@
 =========================== */
 @media (max-width: 768px) {
 
+    /* Body padding for fixed topbar */
+    body {
+        padding-top: 56px;
+        padding-bottom: 0;
+    }
+
     /* Show hamburger and mobile topbar */
-    .hamburger { display: block; }
+    .hamburger    { display: block; }
     .mobile-topbar { display: flex; }
 
-    /* Desktop navbar - keep visible but adjust */
+    /* Desktop navbar — keep visible but hide nav links */
     .navbar {
         display: flex !important;
         padding: 12px 16px !important;
     }
-    
-    /* Hide desktop nav links (they're in hamburger now) */
+
     .nav-links {
         display: none !important;
     }
-    
-    /* Logo size on mobile */
+
     .logo {
         font-size: 18px !important;
     }
 
-    /* Push content down for fixed topbar */
+    /* Main content takes full width */
     .main-content,
     .dashboard-wrapper .main-content,
     .admin-wrapper .main-content {
         margin-left: 0 !important;
-        padding: 72px 16px 20px !important;
-    }
-
-    /* SIDEBAR — slide in from left */
-    .sidebar,
-    .consult-sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        z-index: 100;
-        width: 260px !important;
-    }
-
-    .sidebar.open,
-    .consult-sidebar.open {
-        transform: translateX(0);
+        padding: 72px 16px 80px !important;
     }
 
     /* TOP BAR */
@@ -282,7 +311,7 @@
         font-size: 0.75rem !important;
     }
 
-    /* TABLES — scroll horizontally */
+    /* TABLES */
     .table-container {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
@@ -340,64 +369,10 @@
         grid-template-columns: 1fr !important;
     }
 
-    /* ADMIN STATS */
-    .stats-grid {
-        grid-template-columns: 1fr 1fr !important;
-    }
-
     /* REQUEST CARDS */
     .request-card {
         flex-direction: column !important;
         align-items: flex-start !important;
-    }
-
-    /* HERO SECTION - IMPROVED FOR MOBILE */
-    .hero {
-        flex-direction: column !important;
-        padding: 40px 16px !important;
-        text-align: center !important;
-        min-height: auto !important;
-        gap: 30px !important;
-    }
-
-    .hero-content h1 {
-        font-size: 2rem !important;
-    }
-
-    .hero-content p {
-        max-width: 100% !important;
-        font-size: 1rem !important;
-    }
-
-    .hero-actions {
-        justify-content: center !important;
-    }
-    
-    /* SHOW hero image on mobile */
-    .hero-image {
-        display: block !important;
-        width: 100%;
-        max-width: 280px;
-        margin: 0 auto;
-    }
-    
-    .hero-image img {
-        width: 100%;
-        border-radius: 20px;
-    }
-
-    /* HOW IT WORKS */
-    .steps {
-        flex-direction: column !important;
-        gap: 20px !important;
-        align-items: center !important;
-    }
-
-    .arrow { transform: rotate(90deg) !important; }
-
-    /* FEATURE GRID */
-    .feature-grid {
-        grid-template-columns: 1fr !important;
     }
 
     /* STATS ROW (doctor dashboard) */
@@ -422,7 +397,55 @@
         justify-content: center !important;
     }
 
-    /* BOTTOM NAV for mobile */
+    /* HERO SECTION */
+    .hero {
+        flex-direction: column !important;
+        padding: 40px 16px !important;
+        text-align: center !important;
+        min-height: auto !important;
+        gap: 30px !important;
+    }
+
+    .hero-content h1 {
+        font-size: 2rem !important;
+    }
+
+    .hero-content p {
+        max-width: 100% !important;
+        font-size: 1rem !important;
+    }
+
+    .hero-actions {
+        justify-content: center !important;
+    }
+
+    .hero-image {
+        display: block !important;
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    .hero-image img {
+        width: 100%;
+        border-radius: 20px;
+    }
+
+    /* HOW IT WORKS */
+    .steps {
+        flex-direction: column !important;
+        gap: 20px !important;
+        align-items: center !important;
+    }
+
+    .arrow { transform: rotate(90deg) !important; }
+
+    /* FEATURE GRID */
+    .feature-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* BOTTOM NAV */
     .mobile-bottom-nav {
         display: flex !important;
         position: fixed;
@@ -435,11 +458,6 @@
         z-index: 150;
         justify-content: space-around;
         box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
-    }
-
-    /* Add padding to avoid bottom nav overlap */
-    .main-content {
-        padding-bottom: 80px !important;
     }
 }
 
@@ -462,60 +480,4 @@
     .modal-card {
         margin: 0 4px !important;
     }
-}
-
-/* ===========================
-   MOBILE BOTTOM NAV
-=========================== */
-.mobile-bottom-nav {
-    display: none;
-}
-
-.mobile-bottom-nav a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    text-decoration: none;
-    color: #9ca3af;
-    font-size: 0.65rem;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 8px;
-    transition: color 0.2s;
-    font-family: 'Inter', sans-serif;
-}
-
-.mobile-bottom-nav a.active,
-.mobile-bottom-nav a:hover {
-    color: #059669;
-}
-
-.mobile-bottom-nav i {
-    font-size: 1.1rem;
-}
-
-/* ===========================
-   BODY PADDING FOR MOBILE
-=========================== */
-@media (max-width: 768px) {
-    body {
-        padding-top: 56px;
-        padding-bottom: 0;
-    }
-}
-/* Make sure sidebar links are clickable */
-.sidebar {
-    z-index: 10000 !important;
-}
-
-.sidebar-nav .nav-link {
-    cursor: pointer;
-    pointer-events: auto;
-    position: relative;
-    z-index: 10001;
-}
-
-.sidebar-overlay {
-    z-index: 9999 !important;
 }

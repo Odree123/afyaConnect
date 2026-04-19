@@ -5,15 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consultation Room | afyaConnect</title>
     <link rel="stylesheet" href="dashboard.css">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* ===========================
+           CONSULTATION LAYOUT
+        =========================== */
         .consultation-container {
             display: grid;
-            grid-template-columns: 1fr 350px;
+            grid-template-columns: 1fr 340px;
             gap: 20px;
-            height: calc(100vh - 120px);
+            height: calc(100vh - 130px);
         }
 
         .chat-area {
@@ -23,15 +25,17 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-height: 0;
         }
 
         .chat-header {
-            padding: 15px 20px;
+            padding: 14px 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             gap: 12px;
             background: var(--green-light);
+            flex-shrink: 0;
         }
 
         .chat-messages {
@@ -42,33 +46,56 @@
             flex-direction: column;
             gap: 12px;
             background: #f9fafb;
+            min-height: 0;
         }
 
         .msg {
-            max-width: 70%;
+            max-width: 72%;
             padding: 10px 15px;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 0.9rem;
+            line-height: 1.5;
+            word-break: break-word;
         }
-        .msg.doctor  { align-self: flex-start; background: var(--white); border: 1px solid var(--border); }
-        .msg.patient { align-self: flex-end; background: var(--green); color: white; }
+
+        .msg.doctor  {
+            align-self: flex-start;
+            background: var(--white);
+            border: 1px solid var(--border);
+        }
+        .msg.patient {
+            align-self: flex-end;
+            background: var(--green);
+            color: white;
+        }
 
         .chat-input {
-            padding: 15px;
+            padding: 12px 16px;
             border-top: 1px solid var(--border);
             display: flex;
             gap: 10px;
+            flex-shrink: 0;
+            background: var(--white);
         }
 
         .chat-input input {
             flex: 1;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
             outline: none;
-            font-family: inherit;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
+            transition: border-color 0.2s;
         }
 
+        .chat-input input:focus {
+            border-color: var(--green);
+        }
+
+        /* ===========================
+           PRESCRIPTION SIDEBAR
+        =========================== */
         .prescription-sidebar {
             background: var(--white);
             border-radius: 18px;
@@ -76,59 +103,189 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 14px;
             overflow-y: auto;
         }
 
-        .prescription-form textarea {
+        .prescription-sidebar h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .prescription-form .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .prescription-form label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .prescription-form textarea,
+        .prescription-form input {
             width: 100%;
-            height: 80px;
-            padding: 10px;
+            padding: 10px 12px;
             border-radius: 8px;
-            border: 1px solid var(--border);
-            font-family: inherit;
-            resize: none;
-            margin-top: 5px;
+            border: 1.5px solid var(--border);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            outline: none;
+            background: var(--bg);
+            transition: border-color 0.2s;
             box-sizing: border-box;
         }
 
-        .prescription-form input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            font-family: inherit;
-            margin-top: 5px;
-            box-sizing: border-box;
+        .prescription-form textarea {
+            height: 76px;
+            resize: none;
+        }
+
+        .prescription-form textarea:focus,
+        .prescription-form input:focus {
+            border-color: var(--green);
+            background: white;
         }
 
         .btn-finish {
-            background: var(--red, #e53935);
+            background: var(--red);
             color: white;
             border: none;
             padding: 12px;
             border-radius: 10px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 0.88rem;
+            font-family: 'DM Sans', sans-serif;
             margin-top: auto;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
+
+        .btn-finish:hover { background: #dc2626; }
 
         .empty-chat {
             text-align: center;
             color: #aaa;
             margin: auto;
             font-size: 0.9rem;
+            line-height: 1.8;
         }
 
+        /* ===========================
+           MOBILE PRESCRIPTION TOGGLE
+           Hidden panel on mobile, toggled by button
+        =========================== */
+        .toggle-rx-btn {
+            display: none;
+            background: var(--green-pale);
+            color: var(--green-dark);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .toggle-rx-btn:hover { background: var(--green); color: white; }
+
+        /* ===========================
+           MOBILE TOP ROW (hamburger)
+        =========================== */
+        .consult-mobile-row {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .consult-mobile-row .hamburger {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: var(--text);
+            padding: 6px 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .consult-mobile-row .hamburger:hover {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        /* ===========================
+           RESPONSIVE
+        =========================== */
         @media (max-width: 900px) {
-            .consultation-container { grid-template-columns: 1fr; }
-            .prescription-sidebar   { display: none; }
+            .consultation-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .chat-area {
+                height: 60vh;
+            }
+
+            .prescription-sidebar {
+                display: none; /* hidden by default, toggle-rx-btn reveals it */
+                height: auto;
+            }
+
+            .prescription-sidebar.rx-open {
+                display: flex;
+            }
+
+            .toggle-rx-btn {
+                display: flex;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* main-content already margin:0 from dashboard.css at this breakpoint */
+            .consultation-container {
+                gap: 12px;
+            }
+
+            .chat-area { height: 55vh; }
+
+            .msg { max-width: 88%; }
+
+            .chat-header { padding: 10px 14px; }
+            .chat-messages { padding: 12px; }
+            .chat-input { padding: 10px 12px; }
+
+            .consult-mobile-row { display: flex; }
+
+            /* hide desktop top-bar in consult page */
+            .top-bar { display: none; }
         }
     </style>
 </head>
 <body class="dashboard-body">
 
     <div class="dashboard-wrapper">
+
+        <!-- SIDEBAR OVERLAY -->
+        <div class="sidebar-overlay"></div>
 
         <!-- SIDEBAR -->
         <aside class="sidebar">
@@ -142,28 +299,48 @@
 
         <!-- MAIN CONTENT -->
         <main class="main-content">
+
+            <!-- MOBILE ROW: hamburger + title + rx toggle -->
+            <div class="consult-mobile-row">
+                <button class="hamburger" aria-label="Open menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <strong style="font-size:1rem;">Consultation</strong>
+                <!-- Prescription toggle only shown for doctors via JS -->
+                <button class="toggle-rx-btn" id="toggleRxBtn" style="display:none;">
+                    <i class="fas fa-file-medical"></i> Rx
+                </button>
+            </div>
+
+            <!-- DESKTOP TOP BAR -->
             <header class="top-bar">
                 <div class="section-header">
                     <h2>Consultation Session</h2>
                 </div>
-                <div class="live-indicator">
-                    <span class="dot"></span> Secure Connection
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <!-- Prescription toggle (desktop, doctor only) -->
+                    <button class="toggle-rx-btn" id="toggleRxBtnDesktop" style="display:none;">
+                        <i class="fas fa-file-medical"></i> Toggle Prescription
+                    </button>
+                    <div class="live-indicator">
+                        <span class="dot"></span> Secure Connection
+                    </div>
                 </div>
             </header>
 
+            <!-- CONSULTATION CONTAINER -->
             <div class="consultation-container">
 
                 <!-- CHAT AREA -->
                 <div class="chat-area">
                     <div class="chat-header">
-                        <div class="avatar-circle" style="width:35px; height:35px;" id="partnerAvatar">?</div>
+                        <div class="avatar-circle" style="width:36px; height:36px; font-size:0.82rem;" id="partnerAvatar">?</div>
                         <div>
                             <strong id="chatPartner">Loading...</strong>
-                            <p style="font-size: 0.7rem; color: var(--muted);">Active Now</p>
+                            <p style="font-size: 0.72rem; color: var(--muted); margin:0;">Active Now</p>
                         </div>
                     </div>
 
-                    <!-- ✅ Empty by default — messages loaded from DB -->
                     <div class="chat-messages" id="chatMessages">
                         <div class="empty-chat" id="emptyChat">
                             <i class="fas fa-comment-medical" style="font-size:2rem; margin-bottom:8px; display:block;"></i>
@@ -173,7 +350,7 @@
 
                     <div class="chat-input">
                         <input type="text" id="messageInput" placeholder="Type your message...">
-                        <button class="btn-consult" id="sendBtn" style="width: auto; padding: 0 20px;">
+                        <button class="btn-consult" id="sendBtn" style="width:auto; padding:0 18px;">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
@@ -182,34 +359,28 @@
                 <!-- PRESCRIPTION SIDEBAR (Doctor only) -->
                 <div class="prescription-sidebar" id="doctorOnlySection">
                     <h3><i class="fas fa-file-medical"></i> Prescription</h3>
-                    <div class="prescription-form">
 
+                    <div class="prescription-form">
                         <div class="input-group">
                             <label>Diagnosis</label>
                             <input type="text" id="diagnosis" placeholder="e.g. Migraine">
                         </div>
-
-                        <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
-
+                        <hr style="border:0; border-top:1px solid var(--border); margin:4px 0 10px;">
                         <div class="input-group">
                             <label>Medication Name</label>
                             <input type="text" id="medName" placeholder="e.g. Paracetamol">
                         </div>
-
                         <div class="input-group">
                             <label>Dosage</label>
                             <input type="text" id="dosage" placeholder="e.g. 500mg (1x3)">
                         </div>
-
                         <div class="input-group">
                             <label>Instructions</label>
                             <textarea id="instructions" placeholder="e.g. Take after meals for 3 days"></textarea>
                         </div>
-
-                        <div id="prescSuccess" style="display:none; color:#2e7d32; font-size:0.85rem; margin-top:8px;"></div>
-                        <div id="prescError"   style="display:none; color:#c62828; font-size:0.85rem; margin-top:8px;"></div>
-
-                        <button class="btn-consult" id="sendPrescriptionBtn" style="margin-top: 10px; width: 100%;">
+                        <div id="prescSuccess" style="display:none; color:#2e7d32; font-size:0.82rem; margin-top:6px;"></div>
+                        <div id="prescError"   style="display:none; color:#c62828; font-size:0.82rem; margin-top:6px;"></div>
+                        <button class="btn-consult" id="sendPrescriptionBtn" style="margin-top:10px; width:100%;">
                             <i class="fas fa-paper-plane"></i> Send Prescription
                         </button>
                     </div>
@@ -224,7 +395,6 @@
     </div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="mobile.js"></script>
     <script src="consult.js"></script>
 </body>
 </html>
