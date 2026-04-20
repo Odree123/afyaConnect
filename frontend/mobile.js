@@ -1,8 +1,4 @@
-// ===========================
-// AFYACONNECT MOBILE JS
-// Add <script src="mobile.js"> 
-// to all HTML pages
-// ===========================
+
 
 document.addEventListener('DOMContentLoaded', () => {
 
