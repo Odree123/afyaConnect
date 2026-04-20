@@ -1,68 +1,95 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 console.log('🔍 Environment Check:');
-console.log('- NODE_ENV:', process.env.NODE_ENV || 'development');
-console.log('- DB_HOST:', process.env.DB_HOST ? 'Set' : 'Not set');
+console.log('- NODE_ENV:',    process.env.NODE_ENV    || 'development');
+console.log('- DATABASE_URL:', process.env.DATABASE_URL ? 'Set ✅' : 'Not set ❌');
+console.log('- DB_HOST:',     process.env.DB_HOST     ? 'Set ✅' : 'Not set ❌');
+console.log('- DB_NAME:',     process.env.DB_NAME     || 'not set');
+console.log('- Mode:',        isProduction ? '🚀 Production' : '💻 Local');
 
-let pool;
+// ===========================
+// DATABASE POOL CONFIG
+// Priority order:
+//   1. DATABASE_URL (Render internal URL — most reliable)
+//   2. Individual DB_* variables with SSL (production)
+//   3. Individual DB_* variables without SSL (local dev)
+// ===========================
+let poolConfig;
 
-// Check if we're in production (Render)
-if (process.env.DB_HOST && process.env.DB_HOST !== 'localhost' && process.env.DB_HOST !== '') {
-  // 🚀 Production on Render (using individual variables)
-  console.log('🚀 Connecting to production database on Render...');
-  console.log('📦 Host:', process.env.DB_HOST);
-  
-  pool = new Pool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    ssl: {
-      rejectUnauthorized: false  // ✅ REQUIRED for Render PostgreSQL
-    },
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 20000,
-  });
-} 
-else if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('@')) {
-  // Fallback: Production with DATABASE_URL
-  console.log('🚀 Connecting using DATABASE_URL...');
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false  // ✅ REQUIRED for Render PostgreSQL
-    }
-  });
-} 
-else {
-  // 💻 Local development (no SSL needed)
-  console.log('💻 Connecting to local database...');
-  console.log('📦 Host:', process.env.DB_HOST || 'localhost');
-  
-  pool = new Pool({
-    user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'afya_connect',
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT || 5432,
-    // No SSL for local development
-  });
+if (process.env.DATABASE_URL) {
+    // ✅ Render provides this automatically when you link a PostgreSQL service
+    console.log('🚀 Using DATABASE_URL connection...');
+    poolConfig = {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+        max:                    20,
+        idleTimeoutMillis:  30000,
+        connectionTimeoutMillis: 20000,
+    };
+
+} else if (isProduction) {
+    // ✅ Fallback: individual vars in production — SSL required
+    console.log('🚀 Using individual DB vars (production)...');
+    console.log('📦 Host:', process.env.DB_HOST);
+    poolConfig = {
+        host:     process.env.DB_HOST,
+        port:     parseInt(process.env.DB_PORT) || 5432,
+        database: process.env.DB_NAME,
+        user:     process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        ssl:      { rejectUnauthorized: false },
+        max:                    20,
+        idleTimeoutMillis:  30000,
+        connectionTimeoutMillis: 20000,
+    };
+
+} else {
+    // 💻 Local development — no SSL needed
+    console.log('💻 Using local database (no SSL)...');
+    console.log('📦 Host:', process.env.DB_HOST || 'localhost');
+    poolConfig = {
+        host:     process.env.DB_HOST     || 'localhost',
+        port:     parseInt(process.env.DB_PORT) || 5432,
+        database: process.env.DB_NAME     || 'afya_connect',
+        user:     process.env.DB_USER     || 'postgres',
+        password: process.env.DB_PASSWORD || '',
+    };
 }
 
-// Test the connection
+const pool = new Pool(poolConfig);
+
+// ===========================
+// TEST CONNECTION ON STARTUP
+// ===========================
 pool.connect((err, client, release) => {
-  if (err) {
-    console.error('❌ Database connection error:', err.message);
-    if (err.message.includes('SSL')) {
-      console.error('🔧 SSL required - make sure ssl: { rejectUnauthorized: false } is set');
+    if (err) {
+        console.error('❌ Database connection failed:', err.message);
+        if (err.message.includes('SSL')) {
+            console.error('🔧 Fix: Make sure ssl: { rejectUnauthorized: false } is set');
+            console.error('🔧 Fix: Or set DATABASE_URL in your Render environment variables');
+        }
+        if (err.message.includes('password')) {
+            console.error('🔧 Fix: Check DB_PASSWORD in your Render environment variables');
+        }
+        if (err.message.includes('ENOTFOUND') || err.message.includes('ECONNREFUSED')) {
+            console.error('🔧 Fix: Check DB_HOST — make sure you are using the Internal Database URL from Render');
+        }
+    } else {
+        console.log('✅ Database connected successfully!');
+        console.log('📦 Connected to:', process.env.DB_NAME || 'database');
+        release();
     }
-  } else {
-    console.log('✅ Database connected successfully to:', process.env.DB_NAME || 'database');
-    release();
-  }
+});
+
+// ===========================
+// HANDLE POOL ERRORS
+// Prevents the server from crashing on idle connection drops
+// ===========================
+pool.on('error', (err) => {
+    console.error('⚠️  Unexpected database pool error:', err.message);
 });
 
 module.exports = pool;
