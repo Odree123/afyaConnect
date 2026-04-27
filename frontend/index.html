@@ -168,12 +168,12 @@
         </div>
     </section>
 
-    <!-- MODAL OVERLAY -->
+    <!-- MODAL OVERLAY - UPDATED with Password Security -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-card">
             <button class="modal-close" id="closeModal">✕</button>
 
-            <!-- LOGIN VIEW -->
+            <!-- LOGIN VIEW (with Forgot Password) -->
             <div id="loginView">
                 <h2>Welcome back</h2>
                 <p class="subtitle">Log in to connect with a doctor</p>
@@ -188,12 +188,15 @@
                         <label>Password</label>
                         <input type="password" id="loginPass" placeholder="••••••••" required>
                     </div>
+                    <div style="text-align: right; margin-bottom: 20px;">
+                        <a href="#" id="forgotPasswordLink" style="color: #059669; font-size: 0.85rem; text-decoration: none;">Forgot password?</a>
+                    </div>
                     <button type="submit" class="btn-modal">Login</button>
                 </form>
                 <p class="modal-toggle">New here? <a href="#" id="showSignup">Create an account</a></p>
             </div>
 
-            <!-- SIGNUP VIEW -->
+            <!-- SIGNUP VIEW (with Password Strength Meter) -->
             <div id="signupView" style="display:none;">
                 <h2>Create Account</h2>
                 <p class="subtitle">Join AfyaConnect today — it's free</p>
@@ -216,7 +219,7 @@
 
                     <div class="input-group">
                         <label>Register as</label>
-                        <select id="regRole" onchange="toggleDoctorFields()" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
+                        <select id="regRole" style="width:100%; padding:12px 16px; border:1.5px solid #e5e7eb; border-radius:12px; outline:none; font-size:0.95rem; background:#ecfdf5;">
                             <option value="Patient">Patient</option>
                             <option value="Doctor">Doctor / Medical Professional</option>
                         </select>
@@ -248,12 +251,30 @@
 
                     <div class="input-group">
                         <label>Password</label>
-                        <input type="password" id="regPass" placeholder="••••••••" required>
+                        <input type="password" id="regPass" placeholder="Create strong password" required>
+                        <!-- Password Strength Meter -->
+                        <div class="password-strength" style="margin-top: 8px;">
+                            <div class="strength-bar" style="height: 6px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
+                                <div class="strength-fill" id="strengthFill" style="width: 0%; height: 100%; transition: width 0.2s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                                <span class="strength-text" id="strengthText" style="font-size: 0.7rem; color: #6b7280;">Very weak</span>
+                            </div>
+                        </div>
+                        <!-- Password Requirements Checklist -->
+                        <div class="req-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; font-size: 0.7rem;">
+                            <span id="reqLength" style="color: #9ca3af;">✗ 8+ characters</span>
+                            <span id="reqUpper" style="color: #9ca3af;">✗ Uppercase</span>
+                            <span id="reqLower" style="color: #9ca3af;">✗ Lowercase</span>
+                            <span id="reqNumber" style="color: #9ca3af;">✗ Number</span>
+                            <span id="reqSpecial" style="color: #9ca3af;">✗ Special (!@#$%^&*)</span>
+                        </div>
                     </div>
                     
                     <div class="input-group">
                         <label>Confirm Password</label>
-                        <input type="password" id="regConfirmPass" placeholder="••••••••" required>
+                        <input type="password" id="regConfirmPass" placeholder="Confirm your password">
+                        <div id="matchError" style="color: #dc2626; font-size: 0.7rem; margin-top: 4px;"></div>
                     </div>
 
                     <button type="submit" class="btn-modal">Create Account</button>

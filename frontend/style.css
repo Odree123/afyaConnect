@@ -661,3 +661,86 @@ p, span, a, li, div, button, input, select, textarea, label {
 
     .modal-card { padding: 32px 24px 28px; }
 }
+/* ===========================
+   PASSWORD STRENGTH STYLES
+=========================== */
+.password-strength {
+    margin-top: 8px;
+}
+
+.strength-bar {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    width: 0%;
+    height: 100%;
+    transition: width 0.2s ease;
+}
+
+.strength-text {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+.req-list span {
+    transition: color 0.2s;
+    font-size: 0.7rem;
+}
+
+/* Enhanced error/success messages */
+.error-message {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+    text-align: left;
+    border-left: 3px solid #dc2626;
+}
+
+.success-message {
+    background: #d1fae5;
+    color: #059669;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+    text-align: left;
+    border-left: 3px solid #059669;
+}
+
+/* Input focus states for password fields */
+.input-group input:focus {
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1);
+}
+
+/* Modal transitions */
+.modal-overlay {
+    transition: all 0.2s ease;
+}
+
+.modal-card {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Scrollbar for modal */
+.modal-card::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-card::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.modal-card::-webkit-scrollbar-thumb {
+    background: #059669;
+    border-radius: 10px;
+}

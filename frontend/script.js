@@ -39,14 +39,14 @@ document.addEventListener('keydown', (e) => {
 // ===========================
 // TOGGLE LOGIN / SIGNUP
 // ===========================
-document.getElementById('showSignup').addEventListener('click', (e) => {
+document.getElementById('showSignup')?.addEventListener('click', (e) => {
     e.preventDefault();
     clearMessages();
     loginView.style.display  = 'none';
     signupView.style.display = 'block';
 });
 
-document.getElementById('showLogin').addEventListener('click', (e) => {
+document.getElementById('showLogin')?.addEventListener('click', (e) => {
     e.preventDefault();
     clearMessages();
     signupView.style.display = 'none';
@@ -61,7 +61,7 @@ function showError(id, msg) {
     if (el) {
         el.textContent = msg;
         el.style.display = 'block';
-        el.className = 'error-message'; // Ensure CSS styling applies
+        el.className = 'error-message';
     }
 }
 
@@ -99,9 +99,127 @@ function toggleDoctorFields() {
 document.getElementById('regRole')?.addEventListener('change', toggleDoctorFields);
 
 // ===========================
+// PASSWORD STRENGTH METER (NEW)
+// ===========================
+function checkPasswordStrength(pw) {
+    const hasLength = pw.length >= 8;
+    const hasUpper = /[A-Z]/.test(pw);
+    const hasLower = /[a-z]/.test(pw);
+    const hasNumber = /[0-9]/.test(pw);
+    const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pw);
+
+    // Update requirement indicators
+    const reqElements = {
+        reqLength: hasLength,
+        reqUpper: hasUpper,
+        reqLower: hasLower,
+        reqNumber: hasNumber,
+        reqSpecial: hasSpecial
+    };
+
+    for (const [id, isValid] of Object.entries(reqElements)) {
+        const el = document.getElementById(id);
+        if (el) {
+            if (isValid) {
+                el.innerHTML = el.innerHTML.replace('✗', '✓');
+                el.style.color = '#059669';
+            } else {
+                el.innerHTML = el.innerHTML.replace('✓', '✗');
+                el.style.color = '#9ca3af';
+            }
+        }
+    }
+
+    let score = 0;
+    if (hasLength) score++;
+    if (hasUpper) score++;
+    if (hasLower) score++;
+    if (hasNumber) score++;
+    if (hasSpecial) score++;
+
+    let strength = '';
+    let width = '0%';
+    let color = '#f97316';
+    
+    if (score <= 2) { strength = 'Very weak'; width = '20%'; color = '#f97316'; }
+    else if (score === 3) { strength = 'Weak'; width = '40%;'; color = '#eab308'; }
+    else if (score === 4) { strength = 'Strong'; width = '80%'; color = '#10b981'; }
+    else if (score === 5) { strength = 'Very strong'; width = '100%'; color = '#059669'; }
+
+    const strengthText = document.getElementById('strengthText');
+    const strengthFill = document.getElementById('strengthFill');
+    
+    if (strengthText) strengthText.innerText = strength;
+    if (strengthFill) {
+        strengthFill.style.width = width;
+        strengthFill.style.backgroundColor = color;
+    }
+    
+    return score >= 4;
+}
+
+function validatePasswordMatch() {
+    const password = document.getElementById('regPass')?.value || '';
+    const confirm = document.getElementById('regConfirmPass')?.value || '';
+    const matchError = document.getElementById('matchError');
+    
+    if (confirm && password !== confirm) {
+        if (matchError) matchError.innerText = '❌ Passwords do not match';
+        return false;
+    } else {
+        if (matchError) matchError.innerText = '';
+        return true;
+    }
+}
+
+// ===========================
+// FORGOT PASSWORD HANDLER (NEW)
+// ===========================
+document.getElementById('forgotPasswordLink')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    const email = prompt("🔒 Forgot your password?\n\nEnter your registered email address to receive a secure reset link:");
+    
+    if (!email) return;
+    
+    if (!email.includes('@') || !email.includes('.')) {
+        alert("❌ Please enter a valid email address.");
+        return;
+    }
+    
+    // Show loading state
+    const forgotLink = e.target;
+    const originalText = forgotLink.textContent;
+    forgotLink.textContent = "Sending...";
+    forgotLink.style.opacity = "0.6";
+    
+    try {
+        const response = await fetch(`${API_URL}/api/users/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert(`✅ Password reset link sent to ${email}\n\nThe link will expire in 15 minutes. Please check your inbox.`);
+        } else {
+            alert(`❌ ${data.error || data.message || 'Email not found. Please check and try again.'}`);
+        }
+    } catch (err) {
+        alert("⚠️ Unable to connect to server. Please try again later.");
+        console.error("Forgot password error:", err);
+    } finally {
+        forgotLink.textContent = originalText;
+        forgotLink.style.opacity = "1";
+    }
+});
+
+// ===========================
 // LOGIN FORM
 // ===========================
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearMessages();
 
@@ -140,15 +258,16 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         }
     } catch (err) {
         showError('loginError', 'Connection error. Is the backend running?');
+        console.error(err);
     } finally {
         setLoading(btn, false, 'Login');
     }
 });
 
 // ===========================
-// SIGNUP FORM (CORRECTED)
+// SIGNUP FORM (ENHANCED with Strong Password)
 // ===========================
-document.getElementById('signupForm').addEventListener('submit', async (e) => {
+document.getElementById('signupForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearMessages();
 
@@ -159,17 +278,31 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     const password = document.getElementById('regPass').value;
     const role     = document.getElementById('regRole').value;
     
-    // Doctor Specific Fields (Mapping to Backend license_number)
-    const license_number = document.getElementById('regLicense').value.trim();
-    const specialization = document.getElementById('regSpecialization').value;
+    // Doctor Specific Fields
+    const license_number = document.getElementById('regLicense')?.value.trim() || '';
+    const specialization = document.getElementById('regSpecialization')?.value || '';
 
     const btn = e.target.querySelector('button[type="submit"]');
 
-    // Validation
-    if (password.length < 6) {
-        showError('signupError', 'Password must be at least 6 characters.');
+    // ========== STRONG PASSWORD VALIDATION ==========
+    const hasLength = password.length >= 8;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
+    
+    if (!hasLength || !hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+        showError('signupError', '🔐 Weak password! Must have: 8+ chars, uppercase, lowercase, number, and special character (!@#$%^&*)');
         return;
     }
+    
+    // Check password match
+    const confirmPass = document.getElementById('regConfirmPass').value;
+    if (password !== confirmPass) {
+        showError('signupError', '❌ Passwords do not match.');
+        return;
+    }
+    // ================================================
     
     if (role === 'Doctor') {
         if (!license_number) {
@@ -188,30 +321,23 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         const res = await fetch(`${API_URL}/api/users/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // CRITICAL: Keys must match userController.js destructuring
             body: JSON.stringify({ 
-                name, 
-                email, 
-                phone, 
-                password, 
-                role, 
-                license_number, // Matches backend
-                specialization 
+                name, email, phone, password, role, 
+                license_number, specialization 
             })
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-            // Controller sends errors as { error: "msg" }, not { message: "msg" }
             showError('signupError', data.error || 'Registration failed. Please try again.');
         } else {
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
             const welcomeMsg = data.user.role === 'Doctor' 
-                ? `Account created! Pending Admin approval.` 
-                : `Account created! Welcome, ${data.user.name}!`;
+                ? `✅ Account created! Pending Admin approval. Strong password saved securely.` 
+                : `✅ Account created! Welcome, ${data.user.name}! Your strong password is active.`;
 
             showSuccess('signupSuccess', welcomeMsg);
 
@@ -226,7 +352,28 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         }
     } catch (err) {
         showError('signupError', 'Cannot connect to server. Check your backend.');
+        console.error(err);
     } finally {
         setLoading(btn, false, 'Create Account');
     }
 });
+
+// Initialize password strength listeners when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    const regPass = document.getElementById('regPass');
+    const regConfirm = document.getElementById('regConfirmPass');
+    
+    if (regPass) {
+        regPass.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+            validatePasswordMatch();
+        });
+    }
+    
+    if (regConfirm) {
+        regConfirm.addEventListener('input', validatePasswordMatch);
+    }
+});
+
+// Make toggleDoctorFields available globally
+window.toggleDoctorFields = toggleDoctorFields;
