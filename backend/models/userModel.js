@@ -105,5 +105,54 @@ const updateUser = async (id, updates) => {
         throw error;
     }
 };
+// Add these functions to your existing userModel.js
 
-module.exports = { createUser, findUserByEmail, findUserById, updateUser };
+// Save reset token for user
+const saveResetToken = async (userId, resetToken, resetTokenExpiry) => {
+    const query = `
+        UPDATE users 
+        SET reset_password_token = $1, reset_password_expiry = $2 
+        WHERE id = $3
+        RETURNING id
+    `;
+    const values = [resetToken, resetTokenExpiry, userId];
+    const result = await db.query(query, values);
+    return result.rows[0];
+};
+
+// Find user by reset token (checking expiry)
+const findUserByResetToken = async (token) => {
+    const query = `
+        SELECT id, name, email, reset_password_expiry 
+        FROM users 
+        WHERE reset_password_token = $1 
+        AND reset_password_expiry > NOW()
+    `;
+    const result = await db.query(query, [token]);
+    return result.rows[0];
+};
+
+// Update user password and clear reset token
+const updateUserPassword = async (userId, hashedPassword) => {
+    const query = `
+        UPDATE users 
+        SET password = $1, 
+            reset_password_token = NULL, 
+            reset_password_expiry = NULL 
+        WHERE id = $2
+        RETURNING id
+    `;
+    const result = await db.query(query, [hashedPassword, userId]);
+    return result.rows[0];
+};
+
+
+module.exports = {
+    createUser,
+    findUserByEmail,
+    findUserById,
+     updateUser,
+    saveResetToken,      
+    findUserByResetToken,
+    updateUserPassword    
+};
