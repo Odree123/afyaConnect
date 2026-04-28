@@ -18,57 +18,25 @@ const { setIO } = require('./controllers/consultationController');
 const adminRoutes = require('./routes/adminRoutes');
 
 const app    = express();
-const server = http.createServer(app);
+const server = http.createServer(app); // ✅ wrap express with http
 
-// ✅ COMPLETE CORS FIX - Allow all methods and origins
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204
-}));
-
-// ✅ Handle preflight requests explicitly
-app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-    res.sendStatus(204);
-});
-
-// ✅ Additional CORS middleware for all routes
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(204);
-    }
-    next();
-});
-
-app.use(express.json());
-
-// ✅ Socket.io with proper CORS
+// ✅ FIRST create io
 const io = new Server(server, {
+    
     cors: {
         origin: '*',
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        credentials: true
+        methods: ['GET', 'POST']
     }
 });
-global.io = io;
+global.io = io; 
+
+// ✅ THEN pass io
 setIO(io);
+
 app.set('io', io);
+app.use(cors());
+app.use(express.json());
 
-// ✅ Test endpoint to verify CORS
-app.get('/api/test', (req, res) => {
-    res.json({ message: 'CORS is working!', timestamp: new Date().toISOString() });
-});
-
-// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/consultations', consultationRoutes);
@@ -76,13 +44,14 @@ app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/mpesa', mpesaRoutes);
 app.use('/api/auth', authRoutes);
+
 app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
     res.send('AfyaConnect backend is running');
 });
 
-// Socket.io events
+
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
@@ -133,11 +102,14 @@ io.on('connection', (socket) => {
         io.to(`consultation_${consultation_id}`).emit('consultation_ended', { consultation_id });
     });
 
-    // Consultation started - FIXED (patient_id was undefined)
+    // Consultation started
     socket.on('consultation_started', (data) => {
         const consultation_id = data.consultation_id || data;
-        
-        // ✅ Fixed: patient_id was undefined
+        io.to(`user_${patient_id}`).emit('payment_confirmed', {
+    consultation_id
+});
+
+        // ✅ Also notify patient via their personal room
         if (data.patient_id) {
             io.to(`user_${data.patient_id}`).emit('consultation_started', {
                 consultation_id,
@@ -156,6 +128,4 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log(`CORS enabled for all origins`);
-    console.log(`✅ PUT and DELETE methods are allowed`);
 });
