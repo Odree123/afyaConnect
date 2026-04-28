@@ -12,6 +12,9 @@ const {
     startConsultationController,
     completeConsultationController,
     viewPatientConsultations,
+    declineConsultationController,
+    renewConsultationController,      
+    getConsultationByIdController  
     
 } = require('../controllers/consultationController');
 
@@ -22,5 +25,7 @@ router.put("/start/:id", verifyToken, checkRole("Doctor"), startConsultationCont
 router.put("/complete/:id", verifyToken, checkRole("Doctor"), completeConsultationController);
 router.get("/doctor/:doctor_id", verifyToken, viewDoctorConsultations);
 router.get("/patient/:patient_id", verifyToken, checkRole("Patient"), viewPatientConsultations);
-
+router.put('/decline/:id', verifyToken, checkRole("Doctor"), declineConsultationController);
+router.put('/renew/:id', verifyToken, checkRole("Patient"), renewConsultationController);
+router.get('/:id', verifyToken, getConsultationByIdController);
 module.exports = router;
