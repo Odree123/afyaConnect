@@ -31,6 +31,22 @@ function timeAgo(dateStr) {
 }
 
 // ===========================
+// NOTIFICATION COUNTERS (EXPIRED SPECIFIC)
+// ===========================
+let notificationCounts = {
+    request: 0,
+    paid: 0,
+    expired: 0,
+    general: 0
+};
+
+// ===========================
+// NOTIFICATION PANEL VARIABLES
+// ===========================
+let notifications = [];
+let unreadNotifications = [];
+
+// ===========================
 // SET DOCTOR INFO
 // ===========================
 const initials = getInitials(user?.name);
@@ -57,7 +73,6 @@ if (user) {
 
 // ===========================
 // SIDEBAR — HAMBURGER TOGGLE
-// FIX: null-safe, locks background scroll, Escape key
 // ===========================
 const hamburger = document.querySelector('.hamburger');
 const sidebar   = document.querySelector('.sidebar');
@@ -105,28 +120,286 @@ document.querySelectorAll('.nav-link[data-section]').forEach(link => {
             if (section === 'requests')  loadAllRequests();
         }
 
-        // FIX: auto-close sidebar after nav tap on mobile
         if (window.innerWidth <= 480) closeSidebar();
     });
 });
 
 // ===========================
-// NOTIFICATION BADGE SYNC
-// FIX: keeps both desktop and mobile badges in sync
+// ENHANCED NOTIFICATION BADGE WITH EXPIRED COUNTER
 // ===========================
-function setNotifBadge(count) {
+function updateNotifBadge(type = 'general') {
     const desktop = document.getElementById('notifBadge');
     const mobile  = document.getElementById('notifBadgeMobile');
 
+    if (notificationCounts.hasOwnProperty(type)) {
+        notificationCounts[type]++;
+    } else {
+        notificationCounts.general++;
+    }
+    
+    const total = Object.values(notificationCounts).reduce((sum, count) => sum + count, 0);
+    
     [desktop, mobile].forEach(badge => {
         if (!badge) return;
-        if (count > 0) {
-            badge.textContent   = count;
+        if (total > 0) {
+            badge.textContent = total;
             badge.style.display = 'flex';
+            
+            if (notificationCounts.expired > 0) {
+                badge.style.backgroundColor = '#dc2626';
+                badge.style.animation = 'pulse 1s infinite';
+            } else if (notificationCounts.paid > 0) {
+                badge.style.backgroundColor = '#10b981';
+                badge.style.animation = 'none';
+            } else if (notificationCounts.request > 0) {
+                badge.style.backgroundColor = '#3b82f6';
+                badge.style.animation = 'none';
+            } else {
+                badge.style.backgroundColor = '#ef4444';
+                badge.style.animation = 'none';
+            }
         } else {
             badge.style.display = 'none';
+            badge.style.animation = 'none';
         }
     });
+    
+    saveNotificationCounts();
+}
+
+function resetNotificationCount(type) {
+    if (notificationCounts.hasOwnProperty(type)) {
+        notificationCounts[type] = 0;
+    }
+    
+    const total = Object.values(notificationCounts).reduce((sum, count) => sum + count, 0);
+    const desktop = document.getElementById('notifBadge');
+    const mobile = document.getElementById('notifBadgeMobile');
+    
+    [desktop, mobile].forEach(badge => {
+        if (!badge) return;
+        if (total > 0) {
+            badge.textContent = total;
+            badge.style.display = 'flex';
+            
+            if (notificationCounts.expired > 0) {
+                badge.style.backgroundColor = '#dc2626';
+                badge.style.animation = 'pulse 1s infinite';
+            } else if (notificationCounts.paid > 0) {
+                badge.style.backgroundColor = '#10b981';
+            } else if (notificationCounts.request > 0) {
+                badge.style.backgroundColor = '#3b82f6';
+            }
+        } else {
+            badge.style.display = 'none';
+            badge.style.animation = 'none';
+        }
+    });
+    
+    saveNotificationCounts();
+}
+
+function saveNotificationCounts() {
+    localStorage.setItem('doctor_notif_counts', JSON.stringify({
+        counts: notificationCounts,
+        timestamp: new Date().toISOString()
+    }));
+}
+
+function loadNotificationCounts() {
+    const saved = localStorage.getItem('doctor_notif_counts');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            notificationCounts = data.counts || notificationCounts;
+            const total = Object.values(notificationCounts).reduce((sum, count) => sum + count, 0);
+            
+            if (total > 0) {
+                const desktop = document.getElementById('notifBadge');
+                const mobile = document.getElementById('notifBadgeMobile');
+                
+                [desktop, mobile].forEach(badge => {
+                    if (badge) {
+                        badge.textContent = total;
+                        badge.style.display = 'flex';
+                        if (notificationCounts.expired > 0) {
+                            badge.style.backgroundColor = '#dc2626';
+                            badge.style.animation = 'pulse 1s infinite';
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load notification counts:', e);
+        }
+    }
+}
+
+// ===========================
+// NOTIFICATION PANEL FUNCTIONS
+// ===========================
+function loadNotifications() {
+    const saved = localStorage.getItem('doctor_notifications');
+    if (saved) {
+        try {
+            notifications = JSON.parse(saved);
+            unreadNotifications = notifications.filter(n => !n.read);
+            updateNotificationBadge();
+            renderNotificationList();
+        } catch (e) {
+            console.error('Failed to load notifications:', e);
+        }
+    }
+}
+
+function saveNotifications() {
+    localStorage.setItem('doctor_notifications', JSON.stringify(notifications));
+}
+
+function addNotification(title, message, type, onClick = null) {
+    const notification = {
+        id: Date.now(),
+        title: title,
+        message: message,
+        type: type,
+        timestamp: new Date().toISOString(),
+        read: false,
+        onClick: onClick
+    };
+    
+    notifications.unshift(notification);
+    unreadNotifications = notifications.filter(n => !n.read);
+    
+    saveNotifications();
+    updateNotificationBadge();
+    renderNotificationList();
+    
+    showNotification(title, message, onClick);
+    
+    if (type === 'expired' || type === 'paid') {
+        playNotificationSound();
+    }
+}
+
+function updateNotificationBadge() {
+    const badge = document.getElementById('notifBadge');
+    const badgeMobile = document.getElementById('notifBadgeMobile');
+    
+    const count = unreadNotifications.length;
+    
+    [badge, badgeMobile].forEach(b => {
+        if (b) {
+            if (count > 0) {
+                b.textContent = count;
+                b.style.display = 'flex';
+                
+                const hasExpired = notifications.some(n => !n.read && n.type === 'expired');
+                if (hasExpired) {
+                    b.style.backgroundColor = '#dc2626';
+                    b.style.animation = 'pulse 1s infinite';
+                } else {
+                    b.style.backgroundColor = '#ef4444';
+                    b.style.animation = 'none';
+                }
+            } else {
+                b.style.display = 'none';
+            }
+        }
+    });
+}
+
+function toggleNotificationPanel() {
+    const panel = document.getElementById('notificationPanel');
+    if (panel) {
+        const isVisible = panel.style.display === 'block';
+        panel.style.display = isVisible ? 'none' : 'block';
+    }
+}
+
+document.addEventListener('click', function(event) {
+    const panel = document.getElementById('notificationPanel');
+    const bell = document.getElementById('notificationBell');
+    const bellMobile = document.getElementById('notificationBellMobile');
+    
+    if (panel && bell) {
+        if (!panel.contains(event.target) && !bell.contains(event.target) && (!bellMobile || !bellMobile.contains(event.target))) {
+            panel.style.display = 'none';
+        }
+    }
+});
+
+function renderNotificationList() {
+    const listContainer = document.getElementById('notificationList');
+    if (!listContainer) return;
+    
+    if (notifications.length === 0) {
+        listContainer.innerHTML = '<div class="notification-empty">No notifications yet</div>';
+        return;
+    }
+    
+    listContainer.innerHTML = notifications.map(notif => `
+        <div class="notification-item ${notif.read ? '' : 'unread'}" onclick="handleNotificationClick(${notif.id})">
+            <div class="notification-icon">${getNotificationIcon(notif.type)}</div>
+            <div class="notification-content">
+                <div class="notification-title">${notif.title}</div>
+                <div class="notification-message">${notif.message}</div>
+                <div class="notification-time">${formatTimeAgo(notif.timestamp)}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'paid': return '💰';
+        case 'expired': return '⏰';
+        case 'accepted': return '✅';
+        case 'request': return '🆕';
+        default: return '🔔';
+    }
+}
+
+function formatTimeAgo(timestamp) {
+    const diff = Math.floor((Date.now() - new Date(timestamp)) / 1000);
+    if (diff < 60) return `${diff} seconds ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+    return `${Math.floor(diff / 86400)} days ago`;
+}
+
+function handleNotificationClick(notificationId) {
+    const notification = notifications.find(n => n.id === notificationId);
+    if (notification) {
+        notification.read = true;
+        unreadNotifications = notifications.filter(n => !n.read);
+        saveNotifications();
+        updateNotificationBadge();
+        renderNotificationList();
+        
+        if (notification.onClick) {
+            notification.onClick();
+        } else {
+            switch(notification.type) {
+                case 'paid':
+                    document.querySelector('.nav-link[data-section="dashboard"]')?.click();
+                    break;
+                case 'request':
+                    document.querySelector('.nav-link[data-section="requests"]')?.click();
+                    break;
+                case 'expired':
+                    document.querySelector('.nav-link[data-section="dashboard"]')?.click();
+                    break;
+            }
+        }
+    }
+}
+
+function markAllNotificationsRead() {
+    notifications.forEach(n => n.read = true);
+    unreadNotifications = [];
+    saveNotifications();
+    updateNotificationBadge();
+    renderNotificationList();
 }
 
 // ===========================
@@ -152,7 +425,6 @@ async function loadRequests() {
         const pending = Array.isArray(data) ? data.filter(c => c.status === 'requested') : [];
         const paid    = Array.isArray(data) ? data.filter(c => c.status === 'paid')      : [];
 
-        // Show paid consultations with Start Session button
         const wrapper = document.getElementById('currentSessionWrapper');
         const card    = document.getElementById('currentSession');
 
@@ -174,10 +446,12 @@ async function loadRequests() {
             `).join('');
         }
 
-        // Update stats + badge
         const statPending = document.getElementById('statPending');
         if (statPending) statPending.textContent = pending.length;
-        setNotifBadge(pending.length);
+        
+        if (pending.length > 0) {
+            updateNotifBadge('request');
+        }
 
         if (pending.length === 0) {
             list.innerHTML = `
@@ -241,7 +515,7 @@ async function loadAllRequests() {
         }
 
         list.innerHTML = data.map(req => `
-            <div class="request-item" id="all-req-${req.id}">
+            <div class="request-item ${req.status === 'expired' ? 'expired-item' : ''}" id="all-req-${req.id}">
                 <div class="patient-info">
                     <div class="patient-avatar">${getInitials(req.patient_name || 'Patient')}</div>
                     <div>
@@ -249,7 +523,7 @@ async function loadAllRequests() {
                         <p class="p-status">${new Date(req.created_at).toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}</p>
                     </div>
                 </div>
-                <span class="badge ${req.status}">${req.status.replace('_', ' ')}</span>
+                <span class="badge ${req.status}">${req.status === 'expired' ? 'EXPIRED' : req.status.replace('_', ' ')}</span>
             </div>
         `).join('');
 
@@ -311,6 +585,8 @@ async function acceptRequest(consultationId) {
             return;
         }
 
+        resetNotificationCount('request');
+        
         loadRequests();
         loadAllRequests();
         loadCurrentSession(data);
@@ -354,14 +630,79 @@ async function startSession(consultationId) {
 }
 
 // ===========================
-// DECLINE REQUEST
+// DECLINE REQUEST (with database update)
 // ===========================
-function declineRequest(consultationId) {
+async function declineRequest(consultationId) {
     const reqEl = document.getElementById(`req-${consultationId}`);
-    if (reqEl) {
-        reqEl.style.opacity       = '0.4';
-        reqEl.style.pointerEvents = 'none';
-        setTimeout(() => reqEl.remove(), 400);
+    const declineBtn = reqEl?.querySelector('.btn-decline');
+    
+    if (declineBtn) {
+        declineBtn.disabled = true;
+        declineBtn.innerHTML = 'Declining...';
+    }
+    
+    try {
+        const res = await fetch(`${API_URL}/api/consultations/decline/${consultationId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+            alert(data.message || data || 'Could not decline consultation.');
+            if (declineBtn) {
+                declineBtn.disabled = false;
+                declineBtn.innerHTML = 'Decline';
+            }
+            return;
+        }
+        
+        addNotification(
+            '❌ Consultation Declined',
+            'You have declined this consultation request.',
+            'general',
+            null
+        );
+        
+        if (reqEl) {
+            reqEl.style.transition = 'all 0.3s ease';
+            reqEl.style.opacity = '0';
+            reqEl.style.transform = 'translateX(-100%)';
+            setTimeout(() => {
+                reqEl.remove();
+                
+                const requestsList = document.getElementById('requestsList');
+                if (requestsList && requestsList.children.length === 0) {
+                    requestsList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🩺</div>
+                            <h4>No incoming requests</h4>
+                            <p>New consultation requests will appear here.</p>
+                        </div>`;
+                }
+                
+                const statPending = document.getElementById('statPending');
+                if (statPending) {
+                    const currentCount = parseInt(statPending.textContent) || 0;
+                    statPending.textContent = Math.max(0, currentCount - 1);
+                }
+            }, 300);
+        }
+        
+        resetNotificationCount('request');
+        loadAllRequests();
+        
+    } catch (err) {
+        console.error('Error declining request:', err);
+        alert('Cannot connect to server. Please try again.');
+        if (declineBtn) {
+            declineBtn.disabled = false;
+            declineBtn.innerHTML = 'Decline';
+        }
     }
 }
 
@@ -521,6 +862,19 @@ document.getElementById('submitPrescription')?.addEventListener('click', async (
 });
 
 // ===========================
+// PLAY NOTIFICATION SOUND
+// ===========================
+function playNotificationSound() {
+    try {
+        const audio = new Audio('/sounds/notification.mp3');
+        audio.volume = 0.3;
+        audio.play().catch(e => console.log('Sound not supported'));
+    } catch (e) {
+        console.log('Audio not available');
+    }
+}
+
+// ===========================
 // SOCKET.IO NOTIFICATIONS
 // ===========================
 if (typeof io !== 'undefined') {
@@ -529,17 +883,60 @@ if (typeof io !== 'undefined') {
     notifSocket.on('connect', () => {
         console.log('🔔 Doctor socket connected:', notifSocket.id);
         notifSocket.emit('join_user_room', user.id);
+        loadNotificationCounts();
+        loadNotifications();
     });
 
     notifSocket.on('patient_paid', (data) => {
         console.log('💳 patient_paid received:', data);
-        showNotification(
-            '💳 Payment Received!',
+        
+        addNotification(
+            '💰 Payment Received!',
             'Patient has paid. Start the session now!',
+            'paid',
             () => startSession(data.consultation_id)
         );
+        
+        updateNotifBadge('paid');
         loadRequests();
         loadActiveSession();
+        playNotificationSound();
+    });
+
+    notifSocket.on('consultation_expired', (data) => {
+        console.log('⏰ Consultation expired for doctor:', data);
+        
+        addNotification(
+            '⏰ Consultation Expired',
+            data.message || `Patient did not complete payment. Slot is now free.`,
+            'expired',
+            () => {
+                document.querySelector('.nav-link[data-section="dashboard"]')?.click();
+            }
+        );
+        
+        updateNotifBadge('expired');
+        playNotificationSound();
+        loadRequests();
+        loadActiveSession();
+        loadAllRequests();
+    });
+
+    notifSocket.on('new_consultation_request', (data) => {
+        console.log('🆕 New consultation request:', data);
+        
+        addNotification(
+            '🆕 New Consultation Request',
+            `${data.patient_name || 'A patient'} wants to consult with you.`,
+            'request',
+            () => {
+                document.querySelector('.nav-link[data-section="requests"]')?.click();
+            }
+        );
+        
+        updateNotifBadge('request');
+        loadRequests();
+        playNotificationSound();
     });
 
     notifSocket.on('connect_error', (err) => {
@@ -634,12 +1031,16 @@ document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
     e.preventDefault();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('doctor_notif_counts');
+    localStorage.removeItem('doctor_notifications');
     window.location.href = 'index.html';
 });
 
 // ===========================
 // INIT
 // ===========================
+loadNotificationCounts();
+loadNotifications();
 loadRequests();
 loadActiveSession();
 setInterval(loadRequests,      10000);

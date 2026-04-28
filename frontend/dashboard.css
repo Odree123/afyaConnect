@@ -850,3 +850,33 @@ p {
         font-size: 0.62rem;
     }
 }
+/* Badge pulse animation for expired notifications */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+#notifBadge {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#notifBadge:hover {
+    transform: scale(1.1);
+}
+
+/* Expired consultation card styling */
+.request-card.expired-card {
+    border-left: 3px solid #dc2626;
+    background: #fef2f2;
+}
+
+.request-status.expired {
+    background: #fee2e2;
+    color: #dc2626;
+    border-left: 3px solid #dc2626;
+}
+
+.request-status.expired::before {
+    content: '⏰ ';
+}

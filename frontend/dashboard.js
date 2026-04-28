@@ -23,6 +23,20 @@ function getInitials(name) {
 }
 
 // ===========================
+// NOTIFICATION COUNTERS (EXPIRED SPECIFIC)
+// ===========================
+let notificationCounts = {
+    accepted: 0,
+    started: 0,
+    expired: 0,
+    general: 0
+};
+
+let totalUnreadCount = 0;
+let notifCallback = null;
+let notifTimeout = null;
+
+// ===========================
 // SET USER INFO IN TOP BAR
 // ===========================
 const userNameEl   = document.getElementById('userName');
@@ -32,8 +46,6 @@ if (userAvatarEl) userAvatarEl.textContent = getInitials(user?.name || 'U');
 
 // ===========================
 // SIDEBAR — HAMBURGER TOGGLE
-// FIX: wrapped in null checks so a missing element
-//      won't crash the entire script
 // ===========================
 const hamburger = document.querySelector('.hamburger');
 const sidebar   = document.querySelector('.sidebar');
@@ -42,7 +54,7 @@ const overlay   = document.querySelector('.sidebar-overlay');
 function openSidebar() {
     sidebar?.classList.add('open');
     overlay?.classList.add('active');
-    document.body.style.overflow = 'hidden'; // prevent background scroll
+    document.body.style.overflow = 'hidden';
 }
 
 function closeSidebar() {
@@ -54,7 +66,6 @@ function closeSidebar() {
 hamburger?.addEventListener('click', openSidebar);
 overlay?.addEventListener('click', closeSidebar);
 
-// Close sidebar on Escape key (accessibility)
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeSidebar();
 });
@@ -67,11 +78,9 @@ document.querySelectorAll('.nav-link[data-section]').forEach(link => {
         e.preventDefault();
         const section = link.dataset.section;
 
-        // Update active link
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
 
-        // Show the right section
         document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
         const target = document.getElementById(`section-${section}`);
         if (target) {
@@ -83,17 +92,135 @@ document.querySelectorAll('.nav-link[data-section]').forEach(link => {
             if (section === 'consultations') loadConsultations();
         }
 
-        // FIX: auto-close sidebar on mobile after nav tap
         if (window.innerWidth <= 480) closeSidebar();
     });
 });
 
 // ===========================
+// ENHANCED NOTIFICATION SYSTEM WITH EXPIRED COUNTER
+// ===========================
+function updateNotifBadge(type = 'general') {
+    const badge = document.getElementById('notifBadge');
+    if (!badge) return;
+    
+    if (notificationCounts.hasOwnProperty(type)) {
+        notificationCounts[type]++;
+    } else {
+        notificationCounts.general++;
+    }
+    
+    totalUnreadCount = Object.values(notificationCounts).reduce((sum, count) => sum + count, 0);
+    
+    badge.textContent = totalUnreadCount;
+    badge.style.display = 'flex';
+    
+    if (notificationCounts.expired > 0) {
+        badge.style.backgroundColor = '#dc2626';
+        badge.style.animation = 'pulse 1s infinite';
+    } else if (notificationCounts.accepted > 0) {
+        badge.style.backgroundColor = '#10b981';
+        badge.style.animation = 'none';
+    } else if (notificationCounts.started > 0) {
+        badge.style.backgroundColor = '#3b82f6';
+        badge.style.animation = 'none';
+    } else {
+        badge.style.backgroundColor = '#ef4444';
+        badge.style.animation = 'none';
+    }
+    
+    saveNotificationCounts();
+}
+
+function resetNotificationCount(type) {
+    if (notificationCounts.hasOwnProperty(type)) {
+        notificationCounts[type] = 0;
+    }
+    
+    totalUnreadCount = Object.values(notificationCounts).reduce((sum, count) => sum + count, 0);
+    
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+        if (totalUnreadCount === 0) {
+            badge.style.display = 'none';
+        } else {
+            badge.textContent = totalUnreadCount;
+            if (notificationCounts.expired > 0) {
+                badge.style.backgroundColor = '#dc2626';
+            } else if (notificationCounts.accepted > 0) {
+                badge.style.backgroundColor = '#10b981';
+            } else if (notificationCounts.started > 0) {
+                badge.style.backgroundColor = '#3b82f6';
+            }
+        }
+    }
+    
+    saveNotificationCounts();
+}
+
+function resetAllNotifications() {
+    notificationCounts = {
+        accepted: 0,
+        started: 0,
+        expired: 0,
+        general: 0
+    };
+    totalUnreadCount = 0;
+    
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+        badge.style.display = 'none';
+        badge.style.animation = 'none';
+    }
+    
+    localStorage.removeItem('notif_counts');
+}
+
+function saveNotificationCounts() {
+    localStorage.setItem('notif_counts', JSON.stringify({
+        counts: notificationCounts,
+        total: totalUnreadCount,
+        timestamp: new Date().toISOString()
+    }));
+}
+
+function loadNotificationCounts() {
+    const saved = localStorage.getItem('notif_counts');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            notificationCounts = data.counts || notificationCounts;
+            totalUnreadCount = data.total || 0;
+            
+            if (totalUnreadCount > 0) {
+                const badge = document.getElementById('notifBadge');
+                if (badge) {
+                    badge.textContent = totalUnreadCount;
+                    badge.style.display = 'flex';
+                    if (notificationCounts.expired > 0) {
+                        badge.style.backgroundColor = '#dc2626';
+                        badge.style.animation = 'pulse 1s infinite';
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load notification counts:', e);
+        }
+    }
+}
+
+// ===========================
 // TOGGLE NOTIF PANEL
 // ===========================
 function toggleNotifPanel() {
+    if (notificationCounts.expired > 0) {
+        resetNotificationCount('expired');
+    }
+    
     const badge = document.getElementById('notifBadge');
-    if (badge) badge.style.display = 'none';
+    if (badge && totalUnreadCount === 0) {
+        badge.style.display = 'none';
+    }
+    
     const link = document.querySelector('.nav-link[data-section="requests"]');
     if (link) link.click();
 }
@@ -199,6 +326,80 @@ async function sendRequest(doctorId, doctorName) {
     }
 }
 
+// RENEW EXPIRED CONSULTATION
+// ===========================
+async function renewConsultation(oldConsultId) {
+    console.log('🔄 Renewing consultation:', oldConsultId);
+    
+    const renewBtn = document.querySelector(`#all-req-${oldConsultId} .btn-consult, #all-req-${oldConsultId} button`);
+    
+    if (renewBtn) {
+        renewBtn.disabled = true;
+        renewBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    }
+    
+    try {
+        // First, get the doctor_id from the expired consultation
+        const getRes = await fetch(`${API_URL}/api/consultations/${oldConsultId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!getRes.ok) {
+            throw new Error('Could not get consultation details');
+        }
+        
+        const consultation = await getRes.json();
+        const doctorId = consultation.doctor_id;
+        
+        if (!doctorId) {
+            throw new Error('Doctor not found for this consultation');
+        }
+        
+        // Get doctor name
+        const doctorRes = await fetch(`${API_URL}/api/doctors/${doctorId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        let doctorName = 'Doctor';
+        if (doctorRes.ok) {
+            const doctor = await doctorRes.json();
+            doctorName = doctor.name;
+        }
+        
+        // Send a new request to the same doctor
+        await sendRequest(doctorId, doctorName);
+        
+        // Remove the expired request from UI
+        const expiredElement = document.getElementById(`all-req-${oldConsultId}`);
+        if (expiredElement) {
+            expiredElement.remove();
+        }
+        
+        showNotification(
+            '🔄 Request Sent',
+            `New consultation request sent to ${doctorName}`,
+            null
+        );
+        
+        // Refresh lists
+        await loadRequests();
+        await loadConsultations();
+        
+    } catch (error) {
+        console.error('Renewal error:', error);
+        showNotification(
+            '❌ Renewal Failed',
+            error.message || 'Could not renew consultation. Please request a new doctor.',
+            null
+        );
+    } finally {
+        if (renewBtn) {
+            renewBtn.disabled = false;
+            renewBtn.innerHTML = 'Request Again';
+        }
+    }
+}
+        
 // ===========================
 // PAYMENT LOGIC
 // ===========================
@@ -276,7 +477,7 @@ document.getElementById('payBtn')?.addEventListener('click', async () => {
 });
 
 // ===========================
-// LOAD CONSULTATION REQUESTS
+// LOAD CONSULTATION REQUESTS (UPDATED WITH EXPIRED STYLES)
 // ===========================
 async function loadRequests() {
     const list = document.getElementById('requestsList');
@@ -295,25 +496,40 @@ async function loadRequests() {
             return;
         }
 
-        // FIX: use CSS classes from dashboard.css instead of inline style objects
-        const statusClass = (s) => ({
-            requested:   'pending',
-            accepted:    'accepted',
-            paid:        'paid',
-            in_progress: 'in_progress',
-            completed:   'completed',
-        }[s] || '');
-
-        const statusLabel = (s) => s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const statusLabel = (s) => s === 'expired' ? 'EXPIRED' : s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
 
         list.innerHTML = data.map(req => `
-            <div class="request-card">
+            <div class="request-card ${req.status === 'expired' ? 'expired-card' : ''}">
                 <div class="request-info">
                     <h4>Consultation #${req.id}</h4>
                     <p><strong>Doctor:</strong> ${req.doctor_name || 'Unknown Doctor'}</p>
                     <p>
-                        <span class="request-status ${statusClass(req.status)}">
-                            ${statusLabel(req.status)}
+                        <span class="request-status" style="
+                            background: ${
+                                req.status === 'requested'  ? '#fff3cd' :
+                                req.status === 'accepted'   ? '#d4edda' :
+                                req.status === 'paid'       ? '#cce5ff' :
+                                req.status === 'in_progress'? '#e2d9f3' :
+                                req.status === 'expired'    ? '#fee2e2' :
+                                req.status === 'completed'  ? '#d1e7dd' :
+                                '#d6d8db'
+                            };
+                            color: ${
+                                req.status === 'requested'  ? '#856404' :
+                                req.status === 'accepted'   ? '#155724' :
+                                req.status === 'paid'       ? '#004085' :
+                                req.status === 'in_progress'? '#6f42c1' :
+                                req.status === 'expired'    ? '#dc2626' :
+                                req.status === 'completed'  ? '#0f5132' :
+                                '#383d41'
+                            };
+                            padding: 6px 12px;
+                            border-radius: 20px;
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                            display: inline-block;
+                        ">
+                            ${req.status === 'expired' ? '⏰ ' : ''}${statusLabel(req.status)}
                         </span>
                     </p>
                     <small>${new Date(req.created_at).toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}</small>
@@ -330,6 +546,11 @@ async function loadRequests() {
                             💬 Join Room
                         </button>
                     </a>` : ''}
+                    
+                ${req.status === 'expired' ? `
+                    <button class="btn-consult" onclick="renewConsultation(${req.id})" style="background: #059669;">
+                        🔄 Request Again
+                    </button>` : ''}
             </div>
         `).join('');
 
@@ -339,7 +560,7 @@ async function loadRequests() {
 }
 
 // ===========================
-// LOAD CONSULTATIONS
+// LOAD CONSULTATIONS (UPDATED WITH EXPIRED STYLES)
 // ===========================
 async function loadConsultations() {
     const container = document.getElementById('consultationList');
@@ -353,34 +574,47 @@ async function loadConsultations() {
         });
         const data   = await res.json();
         const active = Array.isArray(data)
-            ? data.filter(c => ['paid', 'in_progress', 'completed'].includes(c.status))
+            ? data.filter(c => ['paid', 'in_progress', 'completed', 'expired'].includes(c.status))
             : [];
 
         if (!active.length) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">💬</div>
-                    <h3>No active consultations</h3>
-                    <p>Once your request is accepted and paid, your session will appear here.</p>
+                    <h3>No consultations</h3>
+                    <p>Your consultation history will appear here.</p>
                 </div>`;
             return;
         }
 
-        // FIX: use CSS classes instead of inline status colours
-        const statusClass = (s) => ({
-            paid:        'paid',
-            in_progress: 'in_progress',
-            completed:   'completed',
-        }[s] || '');
-
         container.innerHTML = active.map(c => `
-            <div class="request-card">
+            <div class="request-card ${c.status === 'expired' ? 'expired-card' : ''}">
                 <div class="request-info">
                     <h4>Consultation #${c.id}</h4>
                     <p><strong>Doctor:</strong> ${c.doctor_name || 'Unknown'}</p>
                     <p>
-                        <span class="request-status ${statusClass(c.status)}">
-                            ${c.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        <span class="request-status" style="
+                            background: ${
+                                c.status === 'paid'        ? '#cce5ff' :
+                                c.status === 'in_progress' ? '#e2d9f3' :
+                                c.status === 'completed'   ? '#d1e7dd' :
+                                c.status === 'expired'     ? '#fee2e2' :
+                                '#d6d8db'
+                            };
+                            color: ${
+                                c.status === 'paid'        ? '#004085' :
+                                c.status === 'in_progress' ? '#6f42c1' :
+                                c.status === 'completed'   ? '#0f5132' :
+                                c.status === 'expired'     ? '#dc2626' :
+                                '#383d41'
+                            };
+                            padding: 6px 12px;
+                            border-radius: 20px;
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                            display: inline-block;
+                        ">
+                            ${c.status === 'expired' ? '⏰ ' : ''}${c.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </span>
                     </p>
                     <small>${new Date(c.created_at).toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}</small>
@@ -395,6 +629,8 @@ async function loadConsultations() {
                         </a>` : ''}
                     ${c.status === 'completed' ? `
                         <p style="color: var(--muted); font-size: 0.85rem;">✅ Session completed</p>` : ''}
+                    ${c.status === 'expired' ? `
+                        <p style="color: #dc2626; font-size: 0.85rem;">⏰ Consultation expired. Please request a new one.</p>` : ''}
                 </div>
             </div>
         `).join('');
@@ -514,22 +750,40 @@ function clearPaymentMessages() {
 }
 
 // ===========================
-// NOTIFICATION HELPERS
+// NOTIFICATION TOAST HELPERS
 // ===========================
-let notifCallback = null;
-let notifTimeout  = null;
-let notifCount    = 0;
-
 function showNotification(title, message, onClick) {
-    const toast = document.getElementById('notifToast');
-    if (!toast) return;
+    let toast = document.getElementById('notifToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'notifToast';
+        toast.style.cssText = `
+            position: fixed; top: 20px; right: 20px;
+            background: white; border: 1.5px solid #d1fae5;
+            border-left: 5px solid #059669; border-radius: 14px;
+            padding: 16px 20px; max-width: 340px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            z-index: 9999; cursor: pointer; display: none;
+        `;
+        toast.innerHTML = `
+            <div style="display:flex; align-items:flex-start; gap:12px;">
+                <span style="font-size:1.5rem;">🔔</span>
+                <div>
+                    <p id="notifTitle" style="font-weight:700; margin:0 0 4px; font-size:0.95rem;"></p>
+                    <p id="notifMessage" style="margin:0; font-size:0.85rem; color:#6b7280;"></p>
+                </div>
+                <button onclick="closeNotif()" style="background:none; border:none; cursor:pointer; color:#9ca3af; font-size:1.1rem; margin-left:auto;">✕</button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+    }
 
     const titleEl = document.getElementById('notifTitle');
-    const msgEl   = document.getElementById('notifMessage');
+    const msgEl = document.getElementById('notifMessage');
     if (titleEl) titleEl.textContent = title;
-    if (msgEl)   msgEl.textContent   = message;
+    if (msgEl) msgEl.textContent = message;
 
-    notifCallback       = onClick;
+    notifCallback = onClick;
     toast.style.display = 'block';
 
     clearTimeout(notifTimeout);
@@ -547,12 +801,17 @@ function closeNotif() {
     clearTimeout(notifTimeout);
 }
 
-function updateNotifBadge() {
-    const badge = document.getElementById('notifBadge');
-    if (!badge) return;
-    notifCount++;
-    badge.textContent   = notifCount;
-    badge.style.display = 'flex';
+// ===========================
+// PLAY NOTIFICATION SOUND
+// ===========================
+function playNotificationSound() {
+    try {
+        const audio = new Audio('/sounds/notification.mp3');
+        audio.volume = 0.3;
+        audio.play().catch(e => console.log('Sound not supported'));
+    } catch (e) {
+        console.log('Audio not available');
+    }
 }
 
 // ===========================
@@ -564,6 +823,7 @@ if (typeof io !== 'undefined' && user?.id) {
     notifSocket.on('connect', () => {
         console.log('🔔 Connected:', notifSocket.id);
         notifSocket.emit('join_user_room', user.id);
+        loadNotificationCounts();
     });
 
     notifSocket.on('consultation_accepted', (data) => {
@@ -579,7 +839,8 @@ if (typeof io !== 'undefined' && user?.id) {
                 openModal('paymentModal');
             }
         );
-        updateNotifBadge();
+        updateNotifBadge('accepted');
+        playNotificationSound();
         loadRequests();
     });
 
@@ -590,9 +851,29 @@ if (typeof io !== 'undefined' && user?.id) {
             'Your consultation has started. Join now!',
             () => { window.location.href = `consult.html?id=${data.consultation_id}`; }
         );
-        updateNotifBadge();
+        updateNotifBadge('started');
+        playNotificationSound();
         loadConsultations();
         loadRequests();
+    });
+
+    notifSocket.on('consultation_expired', (data) => {
+        console.log('⏰ Consultation expired:', data);
+        
+        showNotification(
+            '⏰ Consultation Expired!',
+            data.message || 'Your consultation request has expired. Please request a new one.',
+            () => {
+                const requestsLink = document.querySelector('.nav-link[data-section="requests"]');
+                if (requestsLink) requestsLink.click();
+            }
+        );
+        
+        updateNotifBadge('expired');
+        playNotificationSound();
+        loadRequests();
+        loadConsultations();
+        loadDoctors();
     });
 
     notifSocket.on('connect_error', (err) => {
@@ -612,6 +893,7 @@ document.querySelector('.logout-link')?.addEventListener('click', (e) => {
 // ===========================
 // INIT
 // ===========================
+loadNotificationCounts();
 loadDoctors();
 
 // ===========================
