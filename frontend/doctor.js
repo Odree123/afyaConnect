@@ -1104,5 +1104,3 @@ loadNotificationCounts();
 loadNotifications();
 loadRequests();
 loadActiveSession();
-setInterval(loadRequests,      10000);
-setInterval(loadActiveSession, 15000);
