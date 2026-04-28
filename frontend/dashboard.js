@@ -927,6 +927,7 @@ document.querySelector('.logout-link')?.addEventListener('click', (e) => {
 // ===========================
 loadNotificationCounts();
 loadDoctors();
+loadConsultations();
 
 // ===========================
 // PRINT PRESCRIPTION
