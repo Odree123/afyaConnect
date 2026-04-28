@@ -98,7 +98,34 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ===========================
-// SIDEBAR NAVIGATION
+// RESET ALL NOTIFICATION COUNTERS (FIX FOR INFINITE INCREASE)
+// ===========================
+function resetAllNotificationCounters() {
+    notificationCounts = {
+        request: 0,
+        paid: 0,
+        expired: 0,
+        general: 0
+    };
+    
+    const desktop = document.getElementById('notifBadge');
+    const mobile = document.getElementById('notifBadgeMobile');
+    
+    [desktop, mobile].forEach(badge => {
+        if (badge) {
+            badge.style.display = 'none';
+            badge.textContent = '0';
+            badge.style.animation = 'none';
+            badge.style.backgroundColor = '#ef4444';
+        }
+    });
+    
+    saveNotificationCounts();
+    console.log('✅ All notification counters reset');
+}
+
+// ===========================
+// SIDEBAR NAVIGATION (FIXED - RESETS COUNTERS WHEN VIEWING REQUESTS)
 // ===========================
 document.querySelectorAll('.nav-link[data-section]').forEach(link => {
     link.addEventListener('click', (e) => {
@@ -116,6 +143,12 @@ document.querySelectorAll('.nav-link[data-section]').forEach(link => {
         const target = document.getElementById(`section-${section}`);
         if (target) {
             target.style.display = 'block';
+            
+            // ✅ RESET NOTIFICATION COUNTERS WHEN VIEWING REQUESTS TAB
+            if (section === 'requests') {
+                resetAllNotificationCounters();
+            }
+            
             if (section === 'dashboard') loadRequests();
             if (section === 'requests')  loadAllRequests();
         }
@@ -313,6 +346,11 @@ function toggleNotificationPanel() {
     if (panel) {
         const isVisible = panel.style.display === 'block';
         panel.style.display = isVisible ? 'none' : 'block';
+        
+        // ✅ Reset counters when opening notification panel
+        if (!isVisible) {
+            resetAllNotificationCounters();
+        }
     }
 }
 
@@ -400,10 +438,11 @@ function markAllNotificationsRead() {
     saveNotifications();
     updateNotificationBadge();
     renderNotificationList();
+    resetAllNotificationCounters();
 }
 
 // ===========================
-// LOAD REQUESTS (Dashboard tab)
+// LOAD REQUESTS (Dashboard tab) - FIXED: Only increment for NEW requests
 // ===========================
 async function loadRequests() {
     const list      = document.getElementById('requestsList');
@@ -446,11 +485,16 @@ async function loadRequests() {
             `).join('');
         }
 
+        const oldPendingCount = parseInt(document.getElementById('statPending')?.textContent || '0');
         const statPending = document.getElementById('statPending');
         if (statPending) statPending.textContent = pending.length;
         
-        if (pending.length > 0) {
-            updateNotifBadge('request');
+        // ✅ Only increment for NEW requests (not on every refresh)
+        if (pending.length > oldPendingCount) {
+            const newRequestsCount = pending.length - oldPendingCount;
+            for (let i = 0; i < newRequestsCount; i++) {
+                updateNotifBadge('request');
+            }
         }
 
         if (pending.length === 0) {
@@ -533,21 +577,25 @@ async function loadAllRequests() {
 }
 
 // ===========================
-// LOAD ACTIVE SESSION
+// LOAD ACTIVE SESSION (UPDATED - excludes declined/expired)
 // ===========================
 async function loadActiveSession() {
     try {
         const res  = await fetch(`${API_URL}/api/consultations/doctor/${user.id}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 'Authorization': `Bearer ${token}` },
+            cache: 'no-cache'  // Prevent caching
         });
 
         const data = await res.json();
         if (!Array.isArray(data)) return;
 
+        // ✅ Exclude 'declined' and 'expired' from active sessions
         const active = data.find(c =>
-            c.status === 'paid' ||
-            c.status === 'accepted' ||
-            c.status === 'in_progress'
+            (c.status === 'paid' ||
+             c.status === 'accepted' ||
+             c.status === 'in_progress') &&
+            c.status !== 'declined' &&
+            c.status !== 'expired'
         );
 
         if (active) {
@@ -630,7 +678,7 @@ async function startSession(consultationId) {
 }
 
 // ===========================
-// DECLINE REQUEST (with database update)
+// DECLINE REQUEST (with database update) - FIXED
 // ===========================
 async function declineRequest(consultationId) {
     const reqEl = document.getElementById(`req-${consultationId}`);
@@ -695,6 +743,7 @@ async function declineRequest(consultationId) {
         
         resetNotificationCount('request');
         loadAllRequests();
+        loadActiveSession();  // ✅ IMPORTANT: Clear active session if needed
         
     } catch (err) {
         console.error('Error declining request:', err);
@@ -937,6 +986,18 @@ if (typeof io !== 'undefined') {
         updateNotifBadge('request');
         loadRequests();
         playNotificationSound();
+    });
+
+    notifSocket.on('consultation_declined', (data) => {
+        console.log('📨 Consultation declined:', data);
+        showNotification(
+            '❌ Request Declined',
+            data.message || 'A consultation request has been declined.',
+            null
+        );
+        loadRequests();
+        loadActiveSession();
+        loadAllRequests();
     });
 
     notifSocket.on('connect_error', (err) => {
