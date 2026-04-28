@@ -29,6 +29,7 @@ let notificationCounts = {
     accepted: 0,
     started: 0,
     expired: 0,
+    declined: 0,
     general: 0
 };
 
@@ -117,6 +118,9 @@ function updateNotifBadge(type = 'general') {
     if (notificationCounts.expired > 0) {
         badge.style.backgroundColor = '#dc2626';
         badge.style.animation = 'pulse 1s infinite';
+    } else if (notificationCounts.declined > 0) {
+        badge.style.backgroundColor = '#dc2626';
+        badge.style.animation = 'none';
     } else if (notificationCounts.accepted > 0) {
         badge.style.backgroundColor = '#10b981';
         badge.style.animation = 'none';
@@ -146,6 +150,8 @@ function resetNotificationCount(type) {
             badge.textContent = totalUnreadCount;
             if (notificationCounts.expired > 0) {
                 badge.style.backgroundColor = '#dc2626';
+            } else if (notificationCounts.declined > 0) {
+                badge.style.backgroundColor = '#dc2626';
             } else if (notificationCounts.accepted > 0) {
                 badge.style.backgroundColor = '#10b981';
             } else if (notificationCounts.started > 0) {
@@ -162,6 +168,7 @@ function resetAllNotifications() {
         accepted: 0,
         started: 0,
         expired: 0,
+        declined: 0,
         general: 0
     };
     totalUnreadCount = 0;
@@ -214,6 +221,9 @@ function loadNotificationCounts() {
 function toggleNotifPanel() {
     if (notificationCounts.expired > 0) {
         resetNotificationCount('expired');
+    }
+    if (notificationCounts.declined > 0) {
+        resetNotificationCount('declined');
     }
     
     const badge = document.getElementById('notifBadge');
@@ -326,6 +336,7 @@ async function sendRequest(doctorId, doctorName) {
     }
 }
 
+// ===========================
 // RENEW EXPIRED CONSULTATION
 // ===========================
 async function renewConsultation(oldConsultId) {
@@ -339,7 +350,6 @@ async function renewConsultation(oldConsultId) {
     }
     
     try {
-        // First, get the doctor_id from the expired consultation
         const getRes = await fetch(`${API_URL}/api/consultations/${oldConsultId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -355,7 +365,6 @@ async function renewConsultation(oldConsultId) {
             throw new Error('Doctor not found for this consultation');
         }
         
-        // Get doctor name
         const doctorRes = await fetch(`${API_URL}/api/doctors/${doctorId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -366,10 +375,8 @@ async function renewConsultation(oldConsultId) {
             doctorName = doctor.name;
         }
         
-        // Send a new request to the same doctor
         await sendRequest(doctorId, doctorName);
         
-        // Remove the expired request from UI
         const expiredElement = document.getElementById(`all-req-${oldConsultId}`);
         if (expiredElement) {
             expiredElement.remove();
@@ -381,7 +388,6 @@ async function renewConsultation(oldConsultId) {
             null
         );
         
-        // Refresh lists
         await loadRequests();
         await loadConsultations();
         
@@ -477,7 +483,7 @@ document.getElementById('payBtn')?.addEventListener('click', async () => {
 });
 
 // ===========================
-// LOAD CONSULTATION REQUESTS (UPDATED WITH EXPIRED STYLES)
+// LOAD CONSULTATION REQUESTS (UPDATED WITH DECLINED STYLES)
 // ===========================
 async function loadRequests() {
     const list = document.getElementById('requestsList');
@@ -496,10 +502,10 @@ async function loadRequests() {
             return;
         }
 
-        const statusLabel = (s) => s === 'expired' ? 'EXPIRED' : s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const statusLabel = (s) => s === 'expired' ? 'EXPIRED' : s === 'declined' ? 'DECLINED' : s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
 
         list.innerHTML = data.map(req => `
-            <div class="request-card ${req.status === 'expired' ? 'expired-card' : ''}">
+            <div class="request-card ${req.status === 'expired' || req.status === 'declined' ? 'expired-card' : ''}">
                 <div class="request-info">
                     <h4>Consultation #${req.id}</h4>
                     <p><strong>Doctor:</strong> ${req.doctor_name || 'Unknown Doctor'}</p>
@@ -511,6 +517,7 @@ async function loadRequests() {
                                 req.status === 'paid'       ? '#cce5ff' :
                                 req.status === 'in_progress'? '#e2d9f3' :
                                 req.status === 'expired'    ? '#fee2e2' :
+                                req.status === 'declined'   ? '#fee2e2' :
                                 req.status === 'completed'  ? '#d1e7dd' :
                                 '#d6d8db'
                             };
@@ -520,6 +527,7 @@ async function loadRequests() {
                                 req.status === 'paid'       ? '#004085' :
                                 req.status === 'in_progress'? '#6f42c1' :
                                 req.status === 'expired'    ? '#dc2626' :
+                                req.status === 'declined'   ? '#dc2626' :
                                 req.status === 'completed'  ? '#0f5132' :
                                 '#383d41'
                             };
@@ -529,7 +537,7 @@ async function loadRequests() {
                             font-weight: 600;
                             display: inline-block;
                         ">
-                            ${req.status === 'expired' ? '⏰ ' : ''}${statusLabel(req.status)}
+                            ${req.status === 'expired' ? '⏰ ' : req.status === 'declined' ? '❌ ' : ''}${statusLabel(req.status)}
                         </span>
                     </p>
                     <small>${new Date(req.created_at).toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}</small>
@@ -560,7 +568,7 @@ async function loadRequests() {
 }
 
 // ===========================
-// LOAD CONSULTATIONS (UPDATED WITH EXPIRED STYLES)
+// LOAD CONSULTATIONS (UPDATED WITH DECLINED STYLES)
 // ===========================
 async function loadConsultations() {
     const container = document.getElementById('consultationList');
@@ -574,7 +582,7 @@ async function loadConsultations() {
         });
         const data   = await res.json();
         const active = Array.isArray(data)
-            ? data.filter(c => ['paid', 'in_progress', 'completed', 'expired'].includes(c.status))
+            ? data.filter(c => ['paid', 'in_progress', 'completed', 'expired', 'declined'].includes(c.status))
             : [];
 
         if (!active.length) {
@@ -588,7 +596,7 @@ async function loadConsultations() {
         }
 
         container.innerHTML = active.map(c => `
-            <div class="request-card ${c.status === 'expired' ? 'expired-card' : ''}">
+            <div class="request-card ${c.status === 'expired' || c.status === 'declined' ? 'expired-card' : ''}">
                 <div class="request-info">
                     <h4>Consultation #${c.id}</h4>
                     <p><strong>Doctor:</strong> ${c.doctor_name || 'Unknown'}</p>
@@ -599,6 +607,7 @@ async function loadConsultations() {
                                 c.status === 'in_progress' ? '#e2d9f3' :
                                 c.status === 'completed'   ? '#d1e7dd' :
                                 c.status === 'expired'     ? '#fee2e2' :
+                                c.status === 'declined'    ? '#fee2e2' :
                                 '#d6d8db'
                             };
                             color: ${
@@ -606,6 +615,7 @@ async function loadConsultations() {
                                 c.status === 'in_progress' ? '#6f42c1' :
                                 c.status === 'completed'   ? '#0f5132' :
                                 c.status === 'expired'     ? '#dc2626' :
+                                c.status === 'declined'    ? '#dc2626' :
                                 '#383d41'
                             };
                             padding: 6px 12px;
@@ -614,7 +624,7 @@ async function loadConsultations() {
                             font-weight: 600;
                             display: inline-block;
                         ">
-                            ${c.status === 'expired' ? '⏰ ' : ''}${c.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            ${c.status === 'expired' ? '⏰ ' : c.status === 'declined' ? '❌ ' : ''}${c.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </span>
                     </p>
                     <small>${new Date(c.created_at).toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}</small>
@@ -631,6 +641,8 @@ async function loadConsultations() {
                         <p style="color: var(--muted); font-size: 0.85rem;">✅ Session completed</p>` : ''}
                     ${c.status === 'expired' ? `
                         <p style="color: #dc2626; font-size: 0.85rem;">⏰ Consultation expired. Please request a new one.</p>` : ''}
+                    ${c.status === 'declined' ? `
+                        <p style="color: #dc2626; font-size: 0.85rem;">❌ Consultation was declined by the doctor. Please try another doctor.</p>` : ''}
                 </div>
             </div>
         `).join('');
@@ -815,7 +827,7 @@ function playNotificationSound() {
 }
 
 // ===========================
-// SOCKET.IO NOTIFICATIONS
+// SOCKET.IO NOTIFICATIONS (UPDATED WITH CONSULTATION_DECLINED)
 // ===========================
 if (typeof io !== 'undefined' && user?.id) {
     const notifSocket = io(API_URL, { transports: ['websocket'] });
@@ -870,6 +882,26 @@ if (typeof io !== 'undefined' && user?.id) {
         );
         
         updateNotifBadge('expired');
+        playNotificationSound();
+        loadRequests();
+        loadConsultations();
+        loadDoctors();
+    });
+
+    // ✅ ADDED: Consultation Declined Listener
+    notifSocket.on('consultation_declined', (data) => {
+        console.log('❌ Consultation declined:', data);
+        
+        showNotification(
+            '❌ Request Declined',
+            data.message || 'Your consultation request was declined by the doctor. Please try another doctor.',
+            () => {
+                const doctorsLink = document.querySelector('.nav-link[data-section="dashboard"]');
+                if (doctorsLink) doctorsLink.click();
+            }
+        );
+        
+        updateNotifBadge('declined');
         playNotificationSound();
         loadRequests();
         loadConsultations();
@@ -932,7 +964,7 @@ function printPrescription(p) {
                     <p><strong>Ref:</strong> RX-${p.id}</p>
                 </div>
             </div>
-            <table>
+            <td>
                 <thead>
                     <tr><th>Diagnosis</th><th>Medication</th><th>Dosage</th></tr>
                 </thead>
